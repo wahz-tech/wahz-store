@@ -14,7 +14,8 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "express": "^5.2.1",
-    "multer": "^2.2.0"
+    "multer": "^2.2.0",
+    "cloudinary": "^2.0.0"
   },
   "devDependencies": {
     "prisma": "^5.22.0"
