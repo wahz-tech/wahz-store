@@ -7,7 +7,7 @@ const fs = require('fs');
 const prisma = new PrismaClient();
 const app = express();
 
-if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
+// if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
 
 const storage = multer.diskStorage({
     destination: './uploads/',
