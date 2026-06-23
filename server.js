@@ -1,18 +1,25 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
 const path = require('path');
-const fs = require('fs');
 
 const prisma = new PrismaClient();
 const app = express();
 
-// تم التعديل إلى Memory Storage لتجنب مشاكل الكتابة على سيرفرات Vercel السحابية
+// --- إعدادات ربط Cloudinary لتخزين الصور ---
+// (استبدل الحروف المقابلة ببياناتك الحقيقية اللي هتظهرلك بعد الضغط على View API Keys)
+cloudinary.config({ 
+  cloud_name: 'dngcxt4jk', 
+  api_key: '769915154855871'
+  api_secret: 'tWRcIMQUg6DcJKMjqteQMPog3Kc' 
+});
+
+// إعداد الذاكرة المؤقتة لاستلام الملفات بسلاسة على Vercel
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
 
 // -------- ميديليويرة الحماية الصارمة للإدارة --------
 const adminAuth = (req, res, next) => {
@@ -34,14 +41,15 @@ const adminAuth = (req, res, next) => {
     }
 };
 
-// مسارات العميل (مفتوحة للجميع بدون باسوورد)
+// مسارات العميل (مفتوحة للجميع)
 app.use(express.static('.', { index: false })); 
 app.get('/shop', (req, res) => res.sendFile(__dirname + '/shop.html'));
 
-// مسارات الإدارة (محمية ومؤمنة بالكامل بـ adminAuth)
+// مسارات الإدارة (محمية بالكامل)
 app.get('/', adminAuth, (req, res) => res.sendFile(__dirname + '/index.html'));
 app.get('/admin-orders', adminAuth, (req, res) => res.sendFile(__dirname + '/orders.html'));
 
+// جلب المنتجات
 app.get('/products', async (req, res) => {
     try {
         const products = await prisma.product.findMany({ orderBy: { createdAt: 'desc' } });
@@ -49,11 +57,27 @@ app.get('/products', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// إضافة منتج جديد ورفع صورته مباشرة لـ Cloudinary
 app.post('/add', adminAuth, upload.single('image'), async (req, res) => {
     try {
         const { name, price, description, stock, category } = req.body;
-        // صورة افتراضية مؤقتة لضمان عمل قاعدة البيانات بنجاح أونلاين
-        const imageUrl = req.file ? 'https://via.placeholder.com/150' : null;
+        let imageUrl = null;
+
+        if (req.file) {
+            // رفع الملف مباشرة من الذاكرة إلى السحاب
+            const uploadResult = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: 'wahz_store_products' },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                stream.end(req.file.buffer);
+            });
+            imageUrl = uploadResult.secure_url; // رابط الصورة الدائم أونلاين!
+        }
+
         const newProduct = await prisma.product.create({
             data: { name, price: parseFloat(price), description, category, imageUrl, stock: parseInt(stock) }
         });
@@ -61,17 +85,32 @@ app.post('/add', adminAuth, upload.single('image'), async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// تعديل منتج
 app.put('/update/:id', adminAuth, upload.single('image'), async (req, res) => {
     try {
         const { name, price, description, stock, category } = req.body;
         const updateData = { name, price: parseFloat(price), description, category, stock: parseInt(stock) };
-        if (req.file) updateData.imageUrl = 'https://via.placeholder.com/150';
+        
+        if (req.file) {
+            const uploadResult = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: 'wahz_store_products' },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                stream.end(req.file.buffer);
+            });
+            updateData.imageUrl = uploadResult.secure_url;
+        }
 
         await prisma.product.update({ where: { id: req.params.id }, data: updateData });
         res.send('تم التعديل بنجاح');
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// حذف منتج
 app.delete('/delete/:id', adminAuth, async (req, res) => {
     try {
         await prisma.product.delete({ where: { id: req.params.id } });
@@ -79,6 +118,7 @@ app.delete('/delete/:id', adminAuth, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// جلب الطلبات
 app.get('/api/orders', adminAuth, async (req, res) => {
     try {
         const orders = await prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
@@ -86,6 +126,7 @@ app.get('/api/orders', adminAuth, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// تحديث حالة الطلب
 app.put('/api/orders/:id/status', adminAuth, async (req, res) => {
     try {
         const { status } = req.body;
@@ -94,6 +135,7 @@ app.put('/api/orders/:id/status', adminAuth, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// إتمام الطلب للعميل
 app.post('/checkout', async (req, res) => {
     try {
         const { customer, phone, address, cart } = req.body;
@@ -112,7 +154,5 @@ app.post('/checkout', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// تصدير التطبيق ليتوافق تماماً مع بيئة Vercel Serverless
 module.exports = app;
-
-app.listen(3000, () => console.log('🚀 السيستم المؤمن بالكامل شغال على: http://localhost:3000'));
+app.listen(3000, () => console.log('🚀 Wahz Store شغال وجاهز على السيرفر!'));
