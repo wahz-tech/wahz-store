@@ -11,7 +11,7 @@ const app = express();
 // (استبدل الحروف المقابلة ببياناتك الحقيقية اللي هتظهرلك بعد الضغط على View API Keys)
 cloudinary.config({ 
   cloud_name: 'dngcxt4jk', 
-  api_key: '769915154855871'
+  api_key: '769915154855871',
   api_secret: 'tWRcIMQUg6DcJKMjqteQMPog3Kc' 
 });
 
