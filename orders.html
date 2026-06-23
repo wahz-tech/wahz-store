@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة ومتابعة الطلبات الاحترافية</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; margin: 0; padding: 0; }
+        body { background: #f4f6f9; display: flex; min-height: 100vh; }
+        
+        .sidebar { width: 260px; background: #1e293b; color: white; padding: 25px 15px; }
+        .sidebar h2 { font-size: 1.5rem; text-align: center; margin-bottom: 30px; color: #38bdf8; font-weight: 700; }
+        .sidebar a { display: block; padding: 12px 15px; color: #cbd5e1; text-decoration: none; border-radius: 8px; margin-bottom: 10px; font-weight: 500; transition: 0.3s; }
+        .sidebar a:hover, .sidebar a.orders-active { background: #0f172a; color: #38bdf8; }
+        
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { color: #1e293b; font-size: 2rem; }
+
+        .revenue-card { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 25px; border-radius: 16px; width: 350px; box-shadow: 0 10px 15px -3px rgba(16,185,129,0.2); margin-bottom: 30px; }
+        .revenue-card h3 { font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px; }
+        .revenue-card p { font-size: 2.2rem; font-weight: 700; }
+
+        .orders-container { display: flex; flex-direction: column; gap: 20px; }
+        .order-card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); border-right: 6px solid #e2e8f0; position: relative; }
+        
+        .status-pending { border-right-color: #f59e0b; }
+        .status-shipped { border-right-color: #3b82f6; }
+        .status-delivered { border-right-color: #10b981; }
+
+        .order-top { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 15px; }
+        .client-info strong { font-size: 1.15rem; color: #1e293b; }
+        .client-info p { font-size: 0.85rem; color: #64748b; margin-top: 4px; }
+        
+        .order-sum-box { text-align: left; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .price-text { font-size: 1.4rem; font-weight: 700; color: #0284c7; }
+        
+        .items-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .items-table th { font-size: 0.8rem; background: #f8fafc; padding: 8px; color: #64748b; text-align: right; }
+        .items-table td { padding: 10px 8px; font-size: 0.85rem; color: #475569; border-bottom: 1px solid #f8fafc; }
+        
+        .status-modifier-select { padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
+        .print-btn { background: #475569; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.3s; }
+        .print-btn:hover { background: #1e293b; }
+
+        /* ستايل مخصص للطباعة فقط ليخرج كأنه فاتورة ريسيت احترافية */
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; direction: rtl; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar no-print">
+        <h2>Wahz Store Pro</h2>
+        <a href="/">📦 إدارة المنتجات</a>
+        <a href="/admin-orders" class="orders-active">🧾 الطلبات الواردة</a>
+        <a href="/shop" target="_blank">🌐 عرض المتجر للمشترين</a>
+    </div>
+
+    <div class="main-content">
+        <div class="header no-print">
+            <h1>إدارة فواتير وشحنات العملاء 📦</h1>
+        </div>
+
+        <div class="revenue-card no-print">
+            <h3>إجمالي الإيرادات والأرباح المحققة</h3>
+            <p id="totalRevenueText">0 ج</p>
+        </div>
+
+        <div class="orders-container" id="allOrdersContainerBox"></div>
+    </div>
+
+    <div id="printArea"></div>
+
+    <script>
+        let globalOrders = [];
+
+        async function fetchAndRenderOrdersBoard() {
+            const res = await fetch('/api/orders');
+            if(res.status === 401) return; // الحماية منعت الدخول
+            
+            globalOrders = await res.json();
+
+            const revenue = globalOrders.reduce((sum, o) => sum + o.total, 0);
+            document.getElementById('totalRevenueText').innerText = revenue + " جنيه";
+
+            const container = document.getElementById('allOrdersContainerBox');
+            if(globalOrders.length === 0) {
+                container.innerHTML = '<h3 style="color:#64748b; text-align:center; padding:40px;">لا توجد طلبات شراء مسجلة بالنظام حتى اللحظة.</h3>';
+                return;
+            }
+
+            container.innerHTML = globalOrders.map(order => {
+                let parsedItems = [];
+                try { parsedItems = JSON.parse(order.items); } catch(e) { parsedItems = []; }
+
+                let cssClass = 'status-pending';
+                if(order.status === 'تم الشحن') cssClass = 'status-shipped';
+                if(order.status === 'تم التوصيل') cssClass = 'status-delivered';
+
+                const itemsRowsHtml = parsedItems.map(i => `
+                    <tr>
+                        <td><strong>${i.name}</strong></td>
+                        <td>القسم: ${i.category || 'عام'}</td>
+                        <td>الكمية المطلوبة: ${i.quantity}</td>
+                        <td style="color:#0284c7; font-weight:bold;">${i.price * i.quantity} ج</td>
+                    </tr>
+                `).join('');
+
+                const formattedDate = new Date(order.createdAt).toLocaleString('ar-EG');
+
+                return `
+                    <div class="order-card ${cssClass}">
+                        <div class="order-top">
+                            <div class="client-info">
+                                <strong>👤 العميل: ${order.customer}</strong>
+                                <p>📞 هاتف للتواصل: ${order.phone} | 🕒 توقيت الطلب: ${formattedDate}</p>
+                                <p style="color:#1e293b; font-weight:500; margin-top:5px;">📍 عنوان التوصيل: ${order.address}</p>
+                            </div>
+                            <div class="order-sum-box">
+                                <div class="price-text">${order.total} ج</div>
+                                <select class="status-modifier-select no-print" onchange="updateOrderStatus('${order.id}', this.value)">
+                                    <option value="قيد الانتظار" ${order.status==='قيد الانتظار'?'selected':''}>⏳ قيد الانتظار</option>
+                                    <option value="تم الشحن" ${order.status==='تم الشحن'?'selected':''}>🚚 تم الشحن</option>
+                                    <option value="تم التوصيل" ${order.status==='تم التوصيل'?'selected':''}>✅ تم التوصيل بنجاح</option>
+                                </select>
+                                <button class="print-btn no-print" onclick="printInvoice('${order.id}')">🖨️ طباعة الفاتورة</button>
+                            </div>
+                        </div>
+                        <table class="items-table">
+                            <thead>
+                                <tr><th>اسم المنتج</th><th>التصنيف</th><th>الكمية</th><th>حساب السعر</th></tr>
+                            </thead>
+                            <tbody>${itemsRowsHtml}</tbody>
+                        </table>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            await fetch(`/api/orders/${orderId}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            fetchAndRenderOrdersBoard();
+        }
+
+        // دالة تحضير وطباعة الفاتورة بستايل فخم للمخازن والشحن
+        function printInvoice(orderId) {
+            const order = globalOrders.find(o => o.id === orderId);
+            if(!order) return;
+
+            let parsedItems = [];
+            try { parsedItems = JSON.parse(order.items); } catch(e) { parsedItems = []; }
+
+            const itemsRows = parsedItems.map(i => `
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 8px; text-align: right;">${i.name}</td>
+                    <td style="padding: 8px; text-align: center;">${i.quantity}</td>
+                    <td style="padding: 8px; text-align: left;">${i.price * i.quantity} ج</td>
+                </tr>
+            `).join('');
+
+            const htmlContent = `
+                <div style="border: 2px dashed #000; padding: 20px; font-family: 'Tajawal', sans-serif; max-width: 500px; margin: auto;">
+                    <h2 style="text-align: center; margin-bottom: 5px;">Wahz Store Premium</h2>
+                    <p style="text-align: center; font-size: 12px; margin-bottom: 20px;">فاتورة توريد وشحن عميل</p>
+                    <hr style="border: 1px dashed #000; margin-bottom: 15px;">
+                    <p><strong>رقم الفاتورة:</strong> ${order.id.substring(0,8).toUpperCase()}</p>
+                    <p><strong>العميل:</strong> ${order.customer}</p>
+                    <p><strong>الهاتف:</strong> ${order.phone}</p>
+                    <p><strong>العنوان:</strong> ${order.address}</p>
+                    <p><strong>تاريخ الطلب:</strong> ${new Date(order.createdAt).toLocaleString('ar-EG')}</p>
+                    <hr style="border: 1px dashed #000; margin: 15px 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #eee;">
+                                <th style="padding: 5px; text-align: right;">المنتج</th>
+                                <th style="padding: 5px; text-align: center;">الكمية</th>
+                                <th style="padding: 5px; text-align: left;">السعر</th>
+                            </tr>
+                        </thead>
+                        <tbody>${itemsRows}</tbody>
+                    </table>
+                    <hr style="border: 1px dashed #000; margin: 15px 0;">
+                    <h3 style="display: flex; justify-content: space-between;"><span>المطلوب تحصيله:</span> <span>${order.total} ج</span></h3>
+                    <p style="text-align: center; margin-top: 30px; font-size: 14px;">شكراً لتعاملكم معنا ✨</p>
+                </div>
+            `;
+
+            document.getElementById('printArea').innerHTML = htmlContent;
+            window.print();
+        }
+
+        fetchAndRenderOrdersBoard();
+    </script>
+</body>
+</html>

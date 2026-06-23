@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Wahz Store Premium - متجر المشتري الاحترافي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; margin: 0; padding: 0; }
+        body { background: #f8fafc; color: #1e293b; padding-top: 90px; }
+
+        /* Navbar */
+        .navbar { position: fixed; top: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(0,0,0,0.03); padding: 15px 8%; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+        .brand { font-size: 1.6rem; font-weight: 700; color: #0284c7; text-decoration: none; letter-spacing: -0.5px; }
+        .cart-trigger { background: #f1f5f9; padding: 10px 20px; border-radius: 50px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; position: relative; }
+        .cart-trigger:hover { background: #e2e8f0; }
+        .cart-count-badge { background: #ef4444; color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.8rem; }
+
+        /* Controls Section */
+        .controls-container { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: flex; gap: 15px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .search-bar { flex: 1; min-width: 250px; padding: 12px 20px; border: 1px solid #e2e8f0; border-radius: 30px; font-size: 0.95rem; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .categories { display: flex; gap: 8px; }
+        .cat-btn { padding: 8px 18px; border: 1px solid #e2e8f0; background: white; border-radius: 30px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: 0.3s; }
+        .cat-btn.active, .cat-btn:hover { background: #0284c7; color: white; border-color: #0284c7; }
+
+        /* Products Grid */
+        .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 30px; max-width: 1200px; margin: 20px auto; padding: 20px; }
+        .product-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 10px 15px -3px rgba(0,0,0,0.04); transition: transform 0.3s, box-shadow 0.3s; display: flex; flex-direction: column; position: relative; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .img-box { width: 100%; height: 240px; background: #f8fafc; padding: 15px; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .card-details { padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-cat { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: bold; margin-bottom: 5px; }
+        .card-title { font-size: 1.1rem; color: #1e293b; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+        .card-desc { font-size: 0.85rem; color: #64748b; margin-bottom: 15px; height: 36px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; }
+        .card-price { font-size: 1.25rem; font-weight: 700; color: #0284c7; }
+        .add-to-cart-btn { background: #1e293b; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.3s; }
+        .add-to-cart-btn:hover { background: #0284c7; }
+        .out-badge { position: absolute; top: 15px; right: 15px; background: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+
+        /* Slide-out Cart Sidebar */
+        .sidebar-cart { position: fixed; top: 0; left: -420px; width: 400px; height: 100vh; background: white; box-shadow: 25px 0 50px -12px rgba(0,0,0,0.25); z-index: 2000; transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
+        .sidebar-cart.active { left: 0; }
+        .cart-header { padding: 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #1e293b; color: white; }
+        .cart-close { font-size: 1.8rem; cursor: pointer; opacity: 0.8; }
+        .cart-close:hover { opacity: 1; }
+        .cart-items-list { pading: 20px; flex: 1; overflow-y: auto; padding: 20px; }
+        
+        .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f5f9; gap: 10px; }
+        .cart-item-info { flex: 1; }
+        .cart-item-title { font-weight: 600; font-size: 0.95rem; color: #1e293b; }
+        .cart-item-price { color: #0284c7; font-size: 0.85rem; font-weight: bold; margin-top: 3px; }
+        .quantity-controls { display: flex; align-items: center; gap: 10px; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; background: #f8fafc; }
+        .qty-btn { padding: 4px 10px; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; width: auto; }
+        .qty-btn:hover { background: #cbd5e1; }
+        
+        .cart-checkout-box { padding: 25px; border-top: 1px solid #f1f5f9; background: #f8fafc; }
+        .total-row { display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
+        .checkout-inputs input { background: white; border: 1px solid #e2e8f0; padding: 10px 12px; font-size: 0.85rem; border-radius: 8px; margin-bottom: 10px; width: 100%; box-sizing: border-box; }
+        .order-action-btn { background: #10b981; color: white; width: 100%; padding: 14px; font-size: 1.05rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .order-action-btn:hover { background: #059669; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/shop" class="brand">Wahz Store Premium ✨</a>
+        <div class="cart-trigger" onclick="toggleCartSidebar()">
+            <span>🛒 سلة التسوق</span>
+            <span class="cart-count-badge" id="cartBadgeCount">0</span>
+        </div>
+    </div>
+
+    <div class="controls-container">
+        <input type="text" class="search-bar" id="searchBarInput" placeholder="ابحث عن منتج بالاسم..." oninput="filterAndRenderShop()">
+        <div class="categories" id="categoriesBox">
+            <button class="cat-btn active" onclick="selectCategory('الكل')">الكل</button>
+        </div>
+    </div>
+
+    <div class="store-grid" id="shopProductsGrid"></div>
+
+    <div class="sidebar-cart" id="sidebarCartMenu">
+        <div class="cart-header">
+            <h3>حقيبة المشتريات 🛍️</h3>
+            <span class="cart-close" onclick="toggleCartSidebar()">×</span>
+        </div>
+        <div class="cart-items-list" id="cartItemsListDiv"></div>
+        <div class="cart-checkout-box">
+            <div class="total-row"><span>إجمالي الحساب:</span><span id="cartTotalSumText">0 ج</span></div>
+            <div class="checkout-inputs" id="checkoutInputsForm">
+                <input type="text" id="custName" placeholder="الاسم بالكامل لاستلام الشحنة" required>
+                <input type="tel" id="custPhone" placeholder="رقم الهاتف للتأكيد والمتابعة" required>
+                <input type="text" id="custAddress" placeholder="عنوان التوصيل بالتفصيل (المحافظة/المدينة/الشارع)" required>
+            </div>
+            <button class="order-action-btn" onclick="executeCheckoutOrder()">إتمام وتأكيد الشراء 🚀</button>
+        </div>
+    </div>
+
+    <script>
+        let productsDb = [];
+        let shoppingCart = JSON.parse(localStorage.getItem('wahz_cart')) || [];
+        let selectedCat = 'الكل';
+
+        async function initStore() {
+            const res = await fetch('/products');
+            productsDb = await res.json();
+            
+            // استخراج الأقسام الفريدة ديناميكياً
+            const categories = ['الكل', ...new Set(productsDb.map(p => p.category))];
+            const catBox = document.getElementById('categoriesBox');
+            catBox.innerHTML = categories.map(c => `
+                <button class="cat-btn ${c === selectedCat ? 'active':''}" onclick="selectCategory('${c}')">${c}</button>
+            `).join('');
+
+            filterAndRenderShop();
+            updateCartSidebarUI();
+        }
+
+        function selectCategory(cat) {
+            selectedCat = cat;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            filterAndRenderShop();
+        }
+
+        function filterAndRenderShop() {
+            const searchKeyword = document.getElementById('searchBarInput').value.toLowerCase();
+            const filtered = productsDb.filter(p => {
+                const matchCat = (selectedCat === 'الكل' || p.category === selectedCat);
+                const matchSearch = p.name.toLowerCase().includes(searchKeyword);
+                return matchCat && matchSearch;
+            });
+
+            const grid = document.getElementById('shopProductsGrid');
+            if(filtered.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#64748b; padding:40px;">عذراً.. لا توجد منتجات تطابق بحثك حالياً.</p>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => `
+                <div class="product-card">
+                    ${p.stock <= 0 ? `<div class="out-badge">نفد المخزون</div>` : ''}
+                    <div class="img-box"><img src="${p.imageUrl || 'https://via.placeholder.com/300x240'}" alt="${p.name}"></div>
+                    <div class="card-details">
+                        <div>
+                            <div class="card-cat">${p.category}</div>
+                            <div class="card-title">${p.name}</div>
+                            <div class="card-desc">${p.description || 'لا يوجد وصف تفصيلي للمنتج.'}</div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="card-price">${p.price} ج</span>
+                            <button class="add-to-cart-btn" ${p.stock <= 0 ? 'disabled style="background:#cbd5e1"':''} onclick="pushToCart('${p.id}')">🛒 أضف للسلة</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function pushToCart(id) {
+            const prod = productsDb.find(p => p.id === id);
+            const inCart = shoppingCart.find(item => item.id === id);
+            
+            if(inCart) {
+                if(inCart.quantity >= prod.stock) { alert("عذراً، لقد تجاوزت الكمية المتاحة في المخزن لهذا المنتج!"); return; }
+                inCart.quantity++;
+            } else {
+                shoppingCart.push({ ...prod, quantity: 1 });
+            }
+            saveCartState();
+            updateCartSidebarUI();
+            document.getElementById('sidebarCartMenu').classList.add('active');
+        }
+
+        function changeQty(id, delta) {
+            const item = shoppingCart.find(i => i.id === id);
+            const originalProd = productsDb.find(p => p.id === id);
+            if(!item) return;
+
+            item.quantity += delta;
+            if(item.quantity > originalProd.stock) { alert("لا توجد كمية أكبر من ذلك بالمخزن!"); item.quantity = originalProd.stock; }
+            if(item.quantity <= 0) shoppingCart = shoppingCart.filter(i => i.id !== id);
+            
+            saveCartState();
+            updateCartSidebarUI();
+        }
+
+        function saveCartState() { localStorage.setItem('wahz_cart', JSON.stringify(shoppingCart)); }
+        function toggleCartSidebar() { document.getElementById('sidebarCartMenu').classList.toggle('active'); }
+
+        function updateCartSidebarUI() {
+            const badge = document.getElementById('cartBadgeCount');
+            const totalCount = shoppingCart.reduce((sum, item) => sum + item.quantity, 0);
+            badge.innerText = totalCount;
+
+            const divList = document.getElementById('cartItemsListDiv');
+            if(shoppingCart.length === 0) {
+                divList.innerHTML = '<p style="text-align:center; color:#64748b; margin-top:40px;">سلتك فارغة.. جولة سعيدة بالمتجر!</p>';
+                document.getElementById('cartTotalSumText').innerText = "0 ج";
+                return;
+            }
+
+            divList.innerHTML = shoppingCart.map(i => `
+                <div class="cart-item-row">
+                    <div class="cart-item-info">
+                        <div class="cart-item-title">${i.name}</div>
+                        <div class="cart-item-price">${i.price} ج لكل قطعة</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="qty-btn" onclick="changeQty('${i.id}', -1)">-</button>
+                        <span style="font-weight:bold; padding:0 5px;">${i.quantity}</span>
+                        <button class="qty-btn" onclick="changeQty('${i.id}', 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const sumTotal = shoppingCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('cartTotalSumText').innerText = sumTotal + " ج";
+        }
+
+        async function executeCheckoutOrder() {
+            if(shoppingCart.length === 0) { alert('السلة فارغة يا بطل!'); return; }
+            const customer = document.getElementById('custName').value;
+            const phone = document.getElementById('custPhone').value;
+            const address = document.getElementById('custAddress').value;
+
+            if(!customer || !phone || !address) { alert('برجاء استكمال كافة حقول استلام الشحنة!'); return; }
+
+            const res = await fetch('/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customer, phone, address, cart: shoppingCart })
+            });
+
+            if(res.ok) {
+                alert('🎉 تم استقبال طلبك بنجاح تام! سنتواصل معك هاتفياً للشحن فوراً.');
+                shoppingCart = [];
+                saveCartState();
+                location.reload();
+            }
+        }
+
+        initStore();
+    </script>
+</body>
+</html>

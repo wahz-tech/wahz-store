@@ -1,0 +1,30 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  price       Float
+  description String?
+  imageUrl    String?
+  category    String   @default("عام") // قسم المنتج (ملابس، إلكترونيات...)
+  stock       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  customer  String
+  phone     String
+  address   String   // عنوان العميل بالتفصيل
+  total     Float
+  items     String   // المنتجات كـ JSON نصي
+  status    String   @default("قيد الانتظار") // قيد الانتظار، تم الشحن، تم التوصيل
+  createdAt DateTime @default(now())
+}
