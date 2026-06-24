@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wahz Store - إدارة الطلبات</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
+        .header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 30px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .header h1 { margin: 0; color: var(--primary); }
+        .nav-links a { text-decoration: none; color: #fff; background: var(--text); padding: 8px 15px; border-radius: 5px; font-size: 14px; margin-right: 10px; }
+        .card { background: var(--card); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: right; padding: 12px; border-bottom: 1px solid #e5e7eb; }
+        th { background-color: #f9fafb; }
+        select { padding: 5px; border-radius: 5px; }
+        .status-pending { color: #d97706; font-weight: bold; }
+        .status-shipped { color: #2563eb; font-weight: bold; }
+        .status-delivered { color: #16a34a; font-weight: bold; }
+        .status-cancelled { color: #dc2626; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>إدارة الطلبات المكتملة</h1>
+        <div class="nav-links">
+            <a href="/">⬅️ العودة للوحة المنتجات</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>الطلبات الواردة</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>اسم العميل</th>
+                        <th>رقم الهاتف</th>
+                        <th>العنوان</th>
+                        <th>الإجمالي</th>
+                        <th>تاريخ الطلب</th>
+                        <th>الحالة</th>
+                        <th>تحديث الحالة</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                    <tr><td colspan="8" style="text-align: center;">جاري تحميل الطلبات...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const authHeaderValue = 'Basic ' + btoa('yousef_wahz:yoyomyom12');
+
+        async function fetchOrders() {
+            try {
+                const res = await fetch('/api/orders', {
+                    headers: { 'Authorization': authHeaderValue }
+                });
+                if (!res.ok) throw new Error("فشل الجلب");
+                const orders = await res.json();
+                renderOrders(orders);
+            } catch (err) {
+                document.getElementById('ordersTableBody').innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">فشل في تحميل الطلبات. تأكد من صلاحيات المسؤول.</td></tr>';
+            }
+        }
+
+        function renderOrders(orders) {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '';
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد طلبات حتى الآن.</td></tr>';
+                return;
+            }
+
+            orders.forEach(order => {
+                const date = new Date(order.createdAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+                
+                let statusClass = `status-${order.status}`;
+                let statusText = order.status === 'pending' ? 'قيد الانتظار ⏳' : 
+                                 order.status === 'shipped' ? 'جاري التوصيل 🚚' : 
+                                 order.status === 'delivered' ? 'تم التوصيل ✅' : 'ملغي ❌';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>#${order.id}</td>
+                    <td>${order.customer}</td>
+                    <td dir="ltr">${order.phone}</td>
+                    <td>${order.address}</td>
+                    <td>${order.total} ج.م</td>
+                    <td dir="ltr">${date}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                    <td>
+                        <select onchange="updateStatus('${order.id}', this.value)">
+                            <option value="" disabled selected>تغيير...</option>
+                            <option value="pending">قيد الانتظار</option>
+                            <option value="shipped">جاري التوصيل</option>
+                            <option value="delivered">تم التوصيل</option>
+                            <option value="cancelled">إلغاء الطلب</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function updateStatus(id, newStatus) {
+            try {
+                const res = await fetch(`/api/orders/${id}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': authHeaderValue
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                if (res.ok) {
+                    alert('تم تحديث حالة الطلب بنجاح!');
+                    fetchOrders();
+                } else {
+                    alert('حدث خطأ أثناء تحديث الحالة.');
+                }
+            } catch (err) {
+                alert('خطأ في الاتصال بالسيرفر.');
+            }
+        }
+
+        window.onload = fetchOrders;
+    </script>
+</body>
+</html>

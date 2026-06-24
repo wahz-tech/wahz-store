@@ -1,6 +1,3 @@
-// =======================================================================
-// 1. استدعاء المكتبات (Dependencies)
-// =======================================================================
 const express = require('express');
 const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
@@ -8,18 +5,12 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const path = require('path');
 
-// =======================================================================
-// 2. التهيئة (Initialization)
-// =======================================================================
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors());
-app.use(express.json()); // Express يتعامل مع الجيسون لوحده
+app.use(express.json());
 
-// =======================================================================
-// 3. إعدادات Cloudinary و Multer للصور
-// =======================================================================
 cloudinary.config({ 
     cloud_name: 'dngcxt4jk', 
     api_key: '769915154855871',
@@ -42,9 +33,6 @@ const uploadImageToCloud = (fileBuffer) => {
     });
 };
 
-// =======================================================================
-// 4. ميدل وير الحماية للإدارة (Admin Authentication)
-// =======================================================================
 const adminAuth = (req, res, next) => {
     const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
     const [user, pass] = Buffer.from(b64auth, 'base64').toString().split(':');
@@ -57,9 +45,7 @@ const adminAuth = (req, res, next) => {
     return res.status(401).send('بيانات الدخول غير صحيحة!');
 };
 
-// =======================================================================
-// 5. مسارات الصفحات (HTML Pages Routes)
-// =======================================================================
+// مسارات الصفحات الثابتة
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'index.html'));
 });
@@ -72,10 +58,7 @@ app.get('/shop', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'shop.html'));
 });
 
-// =======================================================================
-// 6. مسارات المنتجات والطلبات (APIs)
-// =======================================================================
-
+// APIs المنتجات والطلبات
 app.get('/products', async (req, res) => {
     try {
         const products = await prisma.product.findMany({ orderBy: { createdAt: 'desc' } });
@@ -104,17 +87,15 @@ app.post('/add', adminAuth, upload.single('image'), async (req, res) => {
                 stock: parseInt(stock) || 0 
             }
         });
-        
         res.status(201).json({ success: true, product: newProduct });
     } catch (err) { 
-        res.status(500).json({ error: "فشل إضافة المنتج في قاعدة البيانات", details: err.message }); 
+        res.status(500).json({ error: "فشل إضافة المنتج", details: err.message }); 
     }
 });
 
 app.put('/update/:id', adminAuth, upload.single('image'), async (req, res) => {
     try {
         const { name, price, description, stock, category } = req.body;
-        // حركة ذكية لقبول الـ ID سواء كان رقم أو نص حسب الـ Schema عندك
         const productId = isNaN(req.params.id) ? req.params.id : parseInt(req.params.id);
 
         const updateData = { 
@@ -129,14 +110,10 @@ app.put('/update/:id', adminAuth, upload.single('image'), async (req, res) => {
             updateData.imageUrl = await uploadImageToCloud(req.file.buffer);
         }
 
-        await prisma.product.update({ 
-            where: { id: productId }, 
-            data: updateData 
-        });
-        
+        await prisma.product.update({ where: { id: productId }, data: updateData });
         res.status(200).json({ success: true, message: 'تم التعديل بنجاح' });
     } catch (err) { 
-        res.status(500).json({ error: "فشل التعديل في قاعدة البيانات", details: err.message }); 
+        res.status(500).json({ error: "فشل التعديل", details: err.message }); 
     }
 });
 
@@ -146,11 +123,10 @@ app.delete('/delete/:id', adminAuth, async (req, res) => {
         await prisma.product.delete({ where: { id: productId } });
         res.status(200).json({ success: true, message: 'تم الحذف بنجاح' });
     } catch (err) { 
-        res.status(500).json({ error: "فشل الحذف من قاعدة البيانات", details: err.message }); 
+        res.status(500).json({ error: "فشل الحذف", details: err.message }); 
     }
 });
 
-// [باقي مسارات الكاشير والطلبات]
 app.get('/api/orders', adminAuth, async (req, res) => {
     try {
         const orders = await prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
@@ -160,8 +136,8 @@ app.get('/api/orders', adminAuth, async (req, res) => {
 
 app.put('/api/orders/:id/status', adminAuth, async (req, res) => {
     try {
-        const productId = isNaN(req.params.id) ? req.params.id : parseInt(req.params.id);
-        await prisma.order.update({ where: { id: productId }, data: { status: req.body.status } });
+        const orderId = isNaN(req.params.id) ? req.params.id : parseInt(req.params.id);
+        await prisma.order.update({ where: { id: orderId }, data: { status: req.body.status } });
         res.status(200).json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -180,18 +156,13 @@ app.post('/checkout', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// =======================================================================
-// 7. تشغيل السيرفر وتجهيز إعدادات فيرسل الحاكمة
-// =======================================================================
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => console.log(`🚀 SVR UP on ${PORT}`));
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 }
 
-// تصدير التطبيق لفيرسل
 module.exports = app;
 
-// ⚡ السحر هنا: بنقفل الـ Body Parser بتاع فيرسل عشان ندي مساحة لـ Multer يرفع الصور بدون مشاكل
 module.exports.config = {
   api: {
     bodyParser: false,

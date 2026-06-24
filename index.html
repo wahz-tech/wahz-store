@@ -116,8 +116,8 @@
         
         .btn-cancel:hover { background-color: #4b5563; }
 
-        .btn-delete { background-color: var(--danger-color); padding: 5px 10px; font-size: 12px; }
-        .btn-edit { background-color: #f59e0b; padding: 5px 10px; font-size: 12px; }
+        .btn-delete { background-color: var(--danger-color); padding: 5px 10px; font-size: 12px; border: none; color: white; border-radius: 3px; cursor: pointer; }
+        .btn-edit { background-color: #f59e0b; padding: 5px 10px; font-size: 12px; border: none; color: white; border-radius: 3px; cursor: pointer; margin-bottom: 5px; }
 
         table {
             width: 100%;
@@ -140,7 +140,6 @@
             border-radius: 5px;
         }
 
-        /* Toast Notifications */
         #toast-container {
             position: fixed;
             bottom: 20px;
@@ -245,41 +244,27 @@
     <div id="toast-container"></div>
 
     <script>
-        // ==========================================
-        // الإعدادات العامة والمتغيرات
-        // ==========================================
         let editMode = false;
         let currentProducts = [];
-        // بيانات الدخول المشفرة الخاصة بـ Middleware الحماية في السيرفر
         const authHeaderValue = 'Basic ' + btoa('yousef_wahz:yoyomyom12');
 
-        // ==========================================
-        // نظام الإشعارات (Toast)
-        // ==========================================
         function triggerNotification(message, type = "success") {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             toast.innerText = message;
-            
             container.appendChild(toast);
-            
             setTimeout(() => toast.classList.add('show'), 100);
-            
             setTimeout(() => {
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
         }
 
-        // ==========================================
-        // جلب وعرض البيانات
-        // ==========================================
         async function fetchDashboardData() {
             try {
                 const res = await fetch('/products');
                 if (!res.ok) throw new Error("فشل في جلب البيانات");
-                
                 currentProducts = await res.json();
                 renderTable();
             } catch (error) {
@@ -304,21 +289,17 @@
                     <td>${product.price} ج.م</td>
                     <td>${product.stock}</td>
                     <td>
-                        <button class="btn-edit" onclick="editProduct(${product.id})">✏️ تعديل</button>
-                        <button class="btn-delete" onclick="deleteProduct(${product.id})">🗑️ حذف</button>
+                        <button class="btn-edit" onclick="editProduct('${product.id}')">✏️ تعديل</button>
+                        <button class="btn-delete" onclick="deleteProduct('${product.id}')">🗑️ حذف</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // ==========================================
-        // إضافة أو تعديل منتج (النسخة المتطورة)
-        // ==========================================
         async function saveProduct(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('submitBtn');
-            
             submitBtn.disabled = true;
             submitBtn.innerText = "جاري الاتصال بقاعدة البيانات...";
 
@@ -345,12 +326,7 @@
             myHeaders.append('Authorization', authHeaderValue);
 
             try {
-                const res = await fetch(url, { 
-                    method: method, 
-                    body: formData, 
-                    headers: myHeaders 
-                });
-                
+                const res = await fetch(url, { method: method, body: formData, headers: myHeaders });
                 const resultData = await res.json().catch(() => ({}));
 
                 if(res.ok) {
@@ -369,11 +345,8 @@
             }
         }
 
-        // ==========================================
-        // تجهيز الفورم للتعديل
-        // ==========================================
         function editProduct(id) {
-            const product = currentProducts.find(p => p.id === id);
+            const product = currentProducts.find(p => p.id == id);
             if (!product) return;
 
             document.getElementById('productId').value = product.id;
@@ -388,12 +361,9 @@
             document.getElementById('cancelBtn').style.display = "block";
             
             editMode = true;
-            window.scrollTo(0, 0); // يطلع فوق للفورم
+            window.scrollTo(0, 0);
         }
 
-        // ==========================================
-        // إعادة ضبط الفورم لحالة الإضافة
-        // ==========================================
         function resetForm() {
             document.getElementById('productForm').reset();
             document.getElementById('productId').value = '';
@@ -403,9 +373,6 @@
             editMode = false;
         }
 
-        // ==========================================
-        // حذف منتج
-        // ==========================================
         async function deleteProduct(id) {
             if (!confirm("هل أنت متأكد من حذف هذا المنتج نهائياً؟")) return;
 
@@ -413,11 +380,7 @@
             myHeaders.append('Authorization', authHeaderValue);
 
             try {
-                const res = await fetch(`/delete/${id}`, { 
-                    method: 'DELETE',
-                    headers: myHeaders
-                });
-
+                const res = await fetch(`/delete/${id}`, { method: 'DELETE', headers: myHeaders });
                 if (res.ok) {
                     triggerNotification("تم حذف المنتج بنجاح");
                     await fetchDashboardData();
@@ -426,16 +389,11 @@
                     triggerNotification(`فشل الحذف: ${resultData.error || ''}`, "error");
                 }
             } catch (err) {
-                triggerNotification("حدث خطأ أثناء الاتصال بالسيرفر لحذف المنتج", "error");
+                triggerNotification("حدث خطأ أثناء الاتصال بالسيرفر للحذف", "error");
             }
         }
 
-        // ==========================================
-        // تشغيل دوال البداية عند تحميل الصفحة
-        // ==========================================
-        window.onload = () => {
-            fetchDashboardData();
-        };
+        window.onload = () => { fetchDashboardData(); };
     </script>
 </body>
 </html>
