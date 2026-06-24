@@ -145,15 +145,38 @@ app.put('/api/orders/:id/status', adminAuth, async (req, res) => {
 app.post('/checkout', async (req, res) => {
     try {
         const { customer, phone, address, cart } = req.body;
+        
+        // التأكد إن فيه بيانات جاية
+        if (!cart || cart.length === 0) return res.status(400).json({ error: "السلة فارغة" });
+
         let total = 0;
+        
+        // حلقة تكرار لكل منتج في السلة
         for (let item of cart) {
-            total += (item.price * item.quantity);
-            const itemId = isNaN(item.id) ? item.id : parseInt(item.id);
-            await prisma.product.update({ where: { id: itemId }, data: { stock: { decrement: item.quantity } } });
+            const quantity = parseInt(item.quantity);
+            total += (item.price * quantity);
+            
+            // نجيب المنتج الأول عشان نعرف المخزن الحالي كام
+            const product = await prisma.product.findUnique({ where: { id: item.id } });
+            
+            if (product) {
+                // نحدث المخزن بناءً على العملية الحسابية (Current - Qty)
+                await prisma.product.update({
+                    where: { id: item.id },
+                    data: { stock: product.stock - quantity }
+                });
+            }
         }
-        const newOrder = await prisma.order.create({ data: { customer, phone, address, total, items: JSON.stringify(cart), status: 'pending' } });
+
+        // تسجيل الطلب
+        const newOrder = await prisma.order.create({ 
+            data: { customer, phone, address, total, items: JSON.stringify(cart), status: 'pending' } 
+        });
+
         res.status(201).json({ success: true, order: newOrder });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 if (process.env.NODE_ENV !== 'production') {
