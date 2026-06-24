@@ -63,16 +63,16 @@ const adminAuth = (req, res, next) => {
 };
 
 // =======================================================================
-// 5. مسارات الصفحات (HTML Routes)
+// 5. مسارات الصفحات (HTML Routes) - [تم التعديل لتتوافق مع Vercel]
 // =======================================================================
-app.use(express.static('.', { index: false })); 
+app.use(express.static(process.cwd(), { index: false })); 
 
 // صفحات العميل
-app.get('/shop', (req, res) => res.sendFile(path.join(__dirname, 'shop.html')));
+app.get('/shop', (req, res) => res.sendFile(path.join(process.cwd(), 'shop.html')));
 
 // صفحات الإدارة (محمية)
-app.get('/', adminAuth, (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/admin-orders', adminAuth, (req, res) => res.sendFile(path.join(__dirname, 'orders.html')));
+app.get('/', adminAuth, (req, res) => res.sendFile(path.join(process.cwd(), 'index.html')));
+app.get('/admin-orders', adminAuth, (req, res) => res.sendFile(path.join(process.cwd(), 'orders.html')));
 
 // =======================================================================
 // 6. مسارات المنتجات (Products APIs)
@@ -134,7 +134,7 @@ app.put('/update/:id', adminAuth, upload.single('image'), async (req, res) => {
         }
 
         await prisma.product.update({ 
-            where: { id: parseInt(req.params.id) }, // يفضل تحويل الـ ID لرقم
+            where: { id: parseInt(req.params.id) }, 
             data: updateData 
         });
         
@@ -217,16 +217,21 @@ app.post('/checkout', async (req, res) => {
 });
 
 // =======================================================================
-// 8. تشغيل السيرفر
+// 8. تشغيل السيرفر وتصديره (تم التعديل لتتوافق مع Vercel)
 // =======================================================================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`
-    =========================================
-    🚀 Wahz Store Backend is UP & RUNNING!
-    🌐 Link: http://localhost:${PORT}
-    =========================================
-    `);
-});
 
+// إذا كنا على الجهاز الشخصي، شغل البورت 3000
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`
+        =========================================
+        🚀 Wahz Store Backend is UP & RUNNING!
+        🌐 Link: http://localhost:${PORT}
+        =========================================
+        `);
+    });
+}
+
+// السطر السحري: تصدير التطبيق عشان Vercel يقدر يشغله كـ Serverless
 module.exports = app;
