@@ -6,7 +6,7 @@ const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
-const path = require('path'); // استدعاء مكتبة المسارات
+const path = require('path');
 
 // =======================================================================
 // 2. التهيئة (Initialization)
@@ -15,7 +15,7 @@ const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Express يتعامل مع الجيسون لوحده
 
 // =======================================================================
 // 3. إعدادات Cloudinary و Multer للصور
@@ -54,11 +54,11 @@ const adminAuth = (req, res, next) => {
     } 
     
     res.setHeader('WWW-Authenticate', 'Basic realm="Admin Area"');
-    return res.status(401).send('بيانات الدخول غير صحيحة! برجاء المحاولة مرة أخرى.');
+    return res.status(401).send('بيانات الدخول غير صحيحة!');
 };
 
 // =======================================================================
-// 5. مسارات الصفحات (HTML Pages Routes) - حلينا مشكلة الفيرسل هنا
+// 5. مسارات الصفحات (HTML Pages Routes)
 // =======================================================================
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'index.html'));
@@ -97,8 +97,8 @@ app.post('/add', adminAuth, upload.single('image'), async (req, res) => {
         const newProduct = await prisma.product.create({
             data: { 
                 name, 
-                price: parseFloat(price), 
-                description, 
+                price: parseFloat(price) || 0, 
+                description: description || '', 
                 category, 
                 imageUrl, 
                 stock: parseInt(stock) || 0 
@@ -107,19 +107,22 @@ app.post('/add', adminAuth, upload.single('image'), async (req, res) => {
         
         res.status(201).json({ success: true, product: newProduct });
     } catch (err) { 
-        res.status(500).json({ error: "فشل في إضافة المنتج", details: err.message }); 
+        res.status(500).json({ error: "فشل إضافة المنتج في قاعدة البيانات", details: err.message }); 
     }
 });
 
 app.put('/update/:id', adminAuth, upload.single('image'), async (req, res) => {
     try {
         const { name, price, description, stock, category } = req.body;
+        // حركة ذكية لقبول الـ ID سواء كان رقم أو نص حسب الـ Schema عندك
+        const productId = isNaN(req.params.id) ? req.params.id : parseInt(req.params.id);
+
         const updateData = { 
             name, 
-            price: parseFloat(price), 
-            description, 
+            price: parseFloat(price) || 0, 
+            description: description || '', 
             category, 
-            stock: parseInt(stock) 
+            stock: parseInt(stock) || 0 
         };
         
         if (req.file) {
@@ -127,86 +130,70 @@ app.put('/update/:id', adminAuth, upload.single('image'), async (req, res) => {
         }
 
         await prisma.product.update({ 
-            where: { id: parseInt(req.params.id) }, 
+            where: { id: productId }, 
             data: updateData 
         });
         
         res.status(200).json({ success: true, message: 'تم التعديل بنجاح' });
     } catch (err) { 
-        res.status(500).json({ error: "فشل في تعديل المنتج", details: err.message }); 
+        res.status(500).json({ error: "فشل التعديل في قاعدة البيانات", details: err.message }); 
     }
 });
 
 app.delete('/delete/:id', adminAuth, async (req, res) => {
     try {
-        await prisma.product.delete({ where: { id: parseInt(req.params.id) } });
+        const productId = isNaN(req.params.id) ? req.params.id : parseInt(req.params.id);
+        await prisma.product.delete({ where: { id: productId } });
         res.status(200).json({ success: true, message: 'تم الحذف بنجاح' });
     } catch (err) { 
-        res.status(500).json({ error: "فشل في حذف المنتج", details: err.message }); 
+        res.status(500).json({ error: "فشل الحذف من قاعدة البيانات", details: err.message }); 
     }
 });
 
+// [باقي مسارات الكاشير والطلبات]
 app.get('/api/orders', adminAuth, async (req, res) => {
     try {
         const orders = await prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
         res.status(200).json(orders);
-    } catch (err) { 
-        res.status(500).json({ error: "فشل في جلب الطلبات", details: err.message }); 
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/orders/:id/status', adminAuth, async (req, res) => {
     try {
-        const { status } = req.body;
-        await prisma.order.update({ 
-            where: { id: parseInt(req.params.id) }, 
-            data: { status } 
-        });
-        res.status(200).json({ success: true, message: 'تم تحديث حالة الطلب' });
-    } catch (err) { 
-        res.status(500).json({ error: "فشل في تحديث الطلب", details: err.message }); 
-    }
+        const productId = isNaN(req.params.id) ? req.params.id : parseInt(req.params.id);
+        await prisma.order.update({ where: { id: productId }, data: { status: req.body.status } });
+        res.status(200).json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/checkout', async (req, res) => {
     try {
         const { customer, phone, address, cart } = req.body;
         let total = 0;
-
         for (let item of cart) {
             total += (item.price * item.quantity);
-            
-            await prisma.product.update({
-                where: { id: parseInt(item.id) },
-                data: { stock: { decrement: item.quantity } }
-            });
+            const itemId = isNaN(item.id) ? item.id : parseInt(item.id);
+            await prisma.product.update({ where: { id: itemId }, data: { stock: { decrement: item.quantity } } });
         }
-
-        const newOrder = await prisma.order.create({
-            data: { 
-                customer, 
-                phone, 
-                address, 
-                total, 
-                items: JSON.stringify(cart),
-                status: 'pending' 
-            }
-        });
-        
+        const newOrder = await prisma.order.create({ data: { customer, phone, address, total, items: JSON.stringify(cart), status: 'pending' } });
         res.status(201).json({ success: true, order: newOrder });
-    } catch (err) { 
-        res.status(500).json({ error: "فشل في إتمام الطلب", details: err.message }); 
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // =======================================================================
-// 7. تشغيل السيرفر
+// 7. تشغيل السيرفر وتجهيز إعدادات فيرسل الحاكمة
 // =======================================================================
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-        console.log(`🚀 Wahz Store Backend is UP on port ${PORT}!`);
-    });
+    app.listen(PORT, () => console.log(`🚀 SVR UP on ${PORT}`));
 }
 
+// تصدير التطبيق لفيرسل
 module.exports = app;
+
+// ⚡ السحر هنا: بنقفل الـ Body Parser بتاع فيرسل عشان ندي مساحة لـ Multer يرفع الصور بدون مشاكل
+module.exports.config = {
+  api: {
+    bodyParser: false,
+  },
+};
