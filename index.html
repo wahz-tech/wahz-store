@@ -112,7 +112,7 @@
         <a href="/shop" target="_blank">🌐 عرض المتجر للمشترين</a>
         
         <div class="sidebar-footer">
-            نظام واهز الاستراتيجي المتكامل<br>إصدار لوحة التحكم v3.0
+             نظام واهز الاستراتيجي المتكامل<br>إصدار لوحة التحكم v3.0
         </div>
     </div>
 
@@ -238,6 +238,9 @@
         let editMode = false;
         let cachedProducts = []; 
 
+        // إنشاء هيدر مشفر للحماية يتبعت في الطلبات الحساسة تلقائياً
+        const authHeaderValue = 'Basic ' + btoa('yousef_wahz:yoyomyom12');
+
         // دالة عرض الإشعارات الاحترافية (Toast)
         function triggerNotification(message, type = 'success') {
             const container = document.getElementById('toastContainer');
@@ -258,7 +261,7 @@
             try {
                 const res = await fetch('/products');
                 cachedProducts = await res.json();
-                applyFilters(); // تطبيق الفلترة الحالية على البيانات الجديدة
+                applyFilters(); 
             } catch (err) {
                 triggerNotification("حدث خطأ أثناء جلب البيانات من السيرفر", "error");
             }
@@ -272,17 +275,14 @@
 
             let filtered = cachedProducts;
 
-            // 1. تصفية بالبحث
             if (searchQuery) {
                 filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery));
             }
 
-            // 2. تصفية بالقسم
             if (categoryFilter !== 'ALL') {
                 filtered = filtered.filter(p => p.category === categoryFilter);
             }
 
-            // 3. تصفية بحالة المخزون
             if (stockFilter === 'AVAILABLE') {
                 filtered = filtered.filter(p => p.stock > 0);
             } else if (stockFilter === 'LOW') {
@@ -295,11 +295,9 @@
         }
 
         function renderTableData(productsToRender) {
-            // تحديث العدادات العامة بناء على كل البيانات الأصلية وليس المفلترة فقط
             document.getElementById('totalProductsCount').innerText = cachedProducts.length;
             document.getElementById('outOfStockCount').innerText = cachedProducts.filter(p => p.stock <= 0).length;
             
-            // حساب القيمة المالية الكلية للمخزن (السعر × الكمية)
             const totalValue = cachedProducts.reduce((sum, p) => sum + (p.price * p.stock), 0);
             document.getElementById('totalInventoryValue').innerText = totalValue.toLocaleString('ar-EG') + " ج";
 
@@ -310,7 +308,6 @@
             }
 
             tbody.innerHTML = productsToRender.map(p => {
-                // تحديد شارة المخزن ولونها ديناميكياً بناء على الرقم
                 let stockBadge = `<span class="badge badge-stock">متاح (${p.stock} قطع)</span>`;
                 if (p.stock <= 0) {
                     stockBadge = `<span class="badge badge-out">نفد مؤقتاً</span>`;
@@ -334,13 +331,12 @@
             }).join('');
         }
 
-        // دالة تصدير مخزون المنتجات بالكامل لملف Excel (CSV)
         function exportInventoryToCSV() {
             if (cachedProducts.length === 0) {
                 triggerNotification("لا توجد بيانات لتصديرها حالياً", "error");
                 return;
             }
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // لدعم اللغة العربية في الـ Excel
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
             csvContent += "كود المنتج,اسم المنتج,القسم,السعر,المخزن المتاح\n";
             
             cachedProducts.forEach(p => {
@@ -398,8 +394,16 @@
                 method = 'PUT';
             }
 
+            // إرسال هيدر الحماية تلقائياً مع الطلب
+            const myHeaders = new Headers();
+            myHeaders.append('Authorization', authHeaderValue);
+
             try {
-                const res = await fetch(url, { method: method, body: formData });
+                const res = await fetch(url, { 
+                    method: method, 
+                    body: formData, 
+                    headers: myHeaders 
+                });
                 if(res.ok) {
                     triggerNotification(editMode ? "تم تحديث بيانات البضاعة بنجاح!" : "تم تسجيل المنتج في الـ Database بنجاح!");
                     resetForm();
@@ -429,7 +433,7 @@
             document.getElementById('description').value = desc;
             
             document.getElementById('imgPreviewBox').style.display = 'none';
-            window.scrollTo({ top: 0, behavior: 'smooth' }); // صعود سلس لأعلى الصفحة لرؤية الفورم أثناء التعديل
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
         }
 
         function resetForm() {
@@ -444,13 +448,21 @@
         async function deleteProduct(id) {
             if(confirm('🚨 هل أنت متأكد من مسح هذا المنتج نهائياً من السيستم؟')) {
                 try {
-                    const res = await fetch(`/delete/${id}`, { method: 'DELETE' });
+                    const myHeaders = new Headers();
+                    myHeaders.append('Authorization', authHeaderValue);
+
+                    const res = await fetch(`/delete/${id}`, { 
+                        method: 'DELETE',
+                        headers: myHeaders
+                    });
                     if(res.ok) {
                         triggerNotification("تم حذف المنتج وتحديث المخزن الفعلي.", "success");
                         await fetchDashboardData();
+                    } else {
+                        triggerNotification("فشل الحذف من قاعدة البيانات"، "error");
                     }
                 } catch (err) {
-                    triggerNotification("فشل الحذف"، "error");
+                    triggerNotification("فشل الحذف", "error");
                 }
             }
         }
