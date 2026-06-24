@@ -1,21 +1,23 @@
 {
-  "functions": {
-    "server.js": {
-      "runtime": "@vercel/node"
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
     }
-  },
-  "rewrites": [
+  ],
+  "routes": [
     {
-      "source": "/products(.*)",
-      "destination": "/server.js"
+      "src": "/products(.*)",
+      "dest": "/server.js"
     },
     {
-      "source": "/orders(.*)",
-      "destination": "/server.js"
+      "src": "/orders(.*)",
+      "dest": "/server.js"
     },
     {
-      "source": "/api/(.*)",
-      "destination": "/server.js"
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
