@@ -1,12 +1,7 @@
 {
+  "version": 2,
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/products", "destination": "/api/server.js" },
-    { "source": "/add", "destination": "/api/server.js" },
-    { "source": "/update/:id", "destination": "/api/server.js" },
-    { "source": "/delete/:id", "destination": "/api/server.js" },
-    { "source": "/api/orders", "destination": "/api/server.js" },
-    { "source": "/api/orders/:id/status", "destination": "/api/server.js" },
-    { "source": "/checkout", "destination": "/api/server.js" }
+    { "source": "/(.*)", "destination": "/api/server.js" }
   ]
 }

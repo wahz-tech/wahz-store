@@ -6,6 +6,7 @@ const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
+const path = require('path'); // استدعاء مكتبة المسارات
 
 // =======================================================================
 // 2. التهيئة (Initialization)
@@ -57,12 +58,22 @@ const adminAuth = (req, res, next) => {
 };
 
 // =======================================================================
-// مسارات الصفحات (HTML Routes) 
-// [تم حذفها بالكامل لأن Vercel سيقوم بتقديمها كملفات ثابتة مباشرة]
+// 5. مسارات الصفحات (HTML Pages Routes) - حلينا مشكلة الفيرسل هنا
 // =======================================================================
+app.get('/', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'index.html'));
+});
+
+app.get('/admin-orders', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'admin-orders.html'));
+});
+
+app.get('/shop', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'shop.html'));
+});
 
 // =======================================================================
-// 5. مسارات المنتجات والطلبات (APIs)
+// 6. مسارات المنتجات والطلبات (APIs)
 // =======================================================================
 
 app.get('/products', async (req, res) => {
@@ -189,7 +200,7 @@ app.post('/checkout', async (req, res) => {
 });
 
 // =======================================================================
-// 6. تشغيل السيرفر
+// 7. تشغيل السيرفر
 // =======================================================================
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 3000;
