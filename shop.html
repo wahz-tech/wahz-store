@@ -124,6 +124,11 @@
 
         .checkout-btn { background: var(--amazon-yellow-grad); width: 100%; padding: 15px; border: 1px solid #a88734; border-radius: 8px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .checkout-btn:hover { background: var(--amazon-yellow-hover); }
+        
+        /* تنسيقات حقول إدخال الدفع */
+        .checkout-inputs { display: none; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .checkout-inputs input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; outline: none; }
+        .checkout-inputs input:focus { border-color: #f90; box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.2); }
 
         /* ================= Fancy Toast ================= */
         .toast { position: fixed; bottom: 30px; right: 30px; background: #232f3e; color: #fff; padding: 15px 25px; border-radius: 4px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 15px; font-weight: 500; transform: translateY(100px); opacity: 0; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 9999; border-right: 4px solid #067d62; }
@@ -154,8 +159,7 @@
         </div>
         
         <div class="sub-nav" id="categoryNav">
-            <!-- Categories will load here -->
-        </div>
+            </div>
     </header>
 
     <div class="hero-section">
@@ -177,7 +181,6 @@
 
     <main class="main-layout">
         <div class="store-grid" id="productsGrid">
-            <!-- Skeleton Loading HTML -->
             <div class="product-card skeleton-card"><div class="skel-img skeleton"></div><div class="skel-text skeleton"></div><div class="skel-text short skeleton"></div><div class="skel-btn skeleton"></div></div>
             <div class="product-card skeleton-card"><div class="skel-img skeleton"></div><div class="skel-text skeleton"></div><div class="skel-text short skeleton"></div><div class="skel-btn skeleton"></div></div>
             <div class="product-card skeleton-card"><div class="skel-img skeleton"></div><div class="skel-text skeleton"></div><div class="skel-text short skeleton"></div><div class="skel-btn skeleton"></div></div>
@@ -185,7 +188,6 @@
         </div>
     </main>
 
-    <!-- Cart Overlay & Sidebar -->
     <div class="overlay" id="overlay" onclick="toggleCart()"></div>
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
@@ -193,36 +195,56 @@
             <button class="close-cart" onclick="toggleCart()">×</button>
         </div>
         <div class="cart-items" id="cartItemsContainer">
-            <!-- Cart Items Go Here -->
-        </div>
+            </div>
         <div class="checkout-footer">
             <div class="total"><span>الإجمالي:</span> <span id="cartTotal">0 ج.م</span></div>
-            <button class="checkout-btn" onclick="goToCheckout()">تابع لإتمام الشراء</button>
+            
+            <div class="checkout-inputs" id="checkoutForm">
+                <input type="text" id="custName" placeholder="الاسم بالكامل" required>
+                <input type="tel" id="custPhone" placeholder="رقم الموبايل" required>
+                <input type="text" id="custAddress" placeholder="عنوان التوصيل بالتفصيل" required>
+            </div>
+
+            <button class="checkout-btn" id="checkoutBtn" onclick="goToCheckout()">تابع لإتمام الشراء</button>
         </div>
     </div>
 
-    <!-- Toast -->
     <div class="toast" id="toastMsg">
         <div class="toast-icon">✓</div>
         <span>تم إضافة المنتج إلى السلة بنجاح!</span>
     </div>
 
     <script>
-        // Database Simulation (هنستخدم دي لحد ما تربط السيرفر)
-        let dbProducts = [
-            { id: 1, name: "لابتوب أسوس جيمنج ROG Strix", price: 45000, category: "لابتوبات", image: "https://via.placeholder.com/300" },
-            { id: 2, name: "ماوس رازر لاسلكي DeathAdder", price: 2500, category: "اكسسوارات", image: "https://via.placeholder.com/300" },
-            { id: 3, name: "شاشة 144Hz جيجابايت 27 بوصة", price: 8500, category: "شاشات", image: "https://via.placeholder.com/300" },
-            { id: 4, name: "كيبورد ميكانيكي ريدراجون K552", price: 1200, category: "اكسسوارات", image: "https://via.placeholder.com/300" }
-        ];
-
+        // الداتا بقت فاضية في البداية عشان هتيجي من السيرفر بتاعك
+        let dbProducts = [];
         let cart = JSON.parse(localStorage.getItem('wahz_cart')) || [];
         let currentCategory = 'الكل';
 
-        // محاكاة تأخير السيرفر (عشان نشوف الـ Skeleton)
-        setTimeout(() => {
-            initStoreUI();
-        }, 1500);
+        // 1. الدالة اللي بتجيب المنتجات من الداتا بيز الحقيقية
+        async function fetchProducts() {
+            try {
+                const response = await fetch('/products');
+                const data = await response.json();
+                
+                // بنظبط البيانات عشان تمشي مع التصميم بتاعك
+                dbProducts = data.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    price: p.price,
+                    category: p.category || 'عام', // لو مفيش تصنيف في السيرفر
+                    image: p.imageUrl || 'https://via.placeholder.com/300?text=Wahz+Store',
+                    stock: p.stock
+                }));
+
+                initStoreUI();
+            } catch (error) {
+                console.error('خطأ في الاتصال بالسيرفر:', error);
+                document.getElementById('productsGrid').innerHTML = '<h3 style="grid-column: 1/-1; text-align:center; padding: 50px; color: #d91c04;">فشل الاتصال بالسيرفر.. يرجى المحاولة لاحقاً</h3>';
+            }
+        }
+
+        // استدعاء السيرفر بدل الـ setTimeout الوهمي القديم
+        fetchProducts();
 
         function initStoreUI() {
             // Setup Categories
@@ -238,7 +260,7 @@
         function renderProducts(products) {
             const grid = document.getElementById('productsGrid');
             if(products.length === 0) {
-                grid.innerHTML = '<h3 style="grid-column: 1/-1; text-align:center; padding: 50px; color: #565959;">لا توجد منتجات مطابقة للبحث</h3>';
+                grid.innerHTML = '<h3 style="grid-column: 1/-1; text-align:center; padding: 50px; color: #565959;">لا توجد منتجات مطابقة للبحث أو المتجر فارغ</h3>';
                 return;
             }
 
@@ -248,7 +270,7 @@
                     <div class="card-cat">${p.category}</div>
                     <h3 class="card-title">${p.name}</h3>
                     <div class="rating">
-                        ★★★★☆ <span class="count">(1,240)</span>
+                        ★★★★☆ <span class="count">(متاح: ${p.stock || 0} قطعة)</span>
                     </div>
                     <div class="prime-badge"><span>✓</span> prime</div>
                     <div class="price-row">
@@ -280,8 +302,14 @@
         // ================= Cart Logic =================
         function addToCart(id) {
             const product = dbProducts.find(p => p.id === id);
-            const existing = cart.find(i => i.id === id);
             
+            // التأكد من المخزون
+            if(product.stock <= 0) {
+                alert('عذراً، هذا المنتج نفذ من المخزون!');
+                return;
+            }
+
+            const existing = cart.find(i => i.id === id);
             if(existing) {
                 existing.qty += 1;
             } else {
@@ -312,6 +340,10 @@
             if(cart.length === 0) {
                 container.innerHTML = '<div style="text-align:center; padding-top:40px;"><h3 style="color:#565959;">عربتك فارغة حالياً</h3></div>';
                 document.getElementById('cartTotal').innerText = '0 ج.م';
+                
+                // إخفاء فورم الدفع لو السلة فضيت
+                document.getElementById('checkoutForm').style.display = 'none';
+                document.getElementById('checkoutBtn').innerText = 'تابع لإتمام الشراء';
                 return;
             }
 
@@ -350,15 +382,78 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        function goToCheckout() {
+        // 2. إرسال الطلب للسيرفر الحقيقي (Prisma & Node.js)
+        async function goToCheckout() {
             if(cart.length === 0) return alert('السلة فارغة!');
-            alert('جاهز نبعت الطلب للسيرفر (Node.js/Prisma) زي ما اتفقنا؟');
+
+            const form = document.getElementById('checkoutForm');
+            const btn = document.getElementById('checkoutBtn');
+
+            // لو الفورم مخفية، نظهرها الأول للعميل عشان يكتب بياناته
+            if(form.style.display === 'none' || form.style.display === '') {
+                form.style.display = 'flex';
+                btn.innerText = 'تأكيد إرسال الطلب 🚀';
+                return;
+            }
+
+            // لو ظاهرة، نجمع البيانات ونبعتها
+            const name = document.getElementById('custName').value;
+            const phone = document.getElementById('custPhone').value;
+            const address = document.getElementById('custAddress').value;
+
+            if(!name || !phone || !address) {
+                return alert('برجاء ملء جميع بيانات الشحن (الاسم، رقم الموبايل، العنوان)!');
+            }
+
+            // تغيير شكل الزرار وقت التحميل
+            btn.innerText = 'جاري تسجيل طلبك...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customer: name,
+                        phone: phone,
+                        address: address,
+                        cart: cart
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`🎉 ألف مبروك! تم تسجيل طلبك بنجاح.\nرقم الأوردر: ${result.order.id}`);
+                    
+                    // تصفير السلة وإخفاء الفورم
+                    cart = [];
+                    saveCart();
+                    updateCartUI();
+                    form.style.display = 'none';
+                    btn.innerText = 'تابع لإتمام الشراء';
+                    toggleCart();
+                    
+                    // تحديث المنتجات عشان المخزون يقل
+                    fetchProducts(); 
+                } else {
+                    alert('❌ حدث خطأ: ' + result.error);
+                }
+            } catch (error) {
+                console.error('خطأ الدفع:', error);
+                alert('حدث خطأ في الاتصال بالسيرفر، يرجى المحاولة مرة أخرى.');
+            } finally {
+                btn.disabled = false;
+                if(btn.innerText === 'جاري تسجيل طلبك...') {
+                    btn.innerText = 'تأكيد إرسال الطلب 🚀';
+                }
+            }
         }
 
         // ================= Hero Slider Logic =================
         let slideIndex = 0;
         setInterval(() => {
-            slideIndex = (slideIndex + 1) % 2; // عندي صورتين في السلايدر حالياً
+            slideIndex = (slideIndex + 1) % 2; 
             document.getElementById('slider').style.transform = `translateX(${slideIndex * 33.333}%)`;
         }, 5000);
 
