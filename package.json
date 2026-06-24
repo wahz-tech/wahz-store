@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
- "scripts": {
+  "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "prisma generate"
   },
@@ -13,9 +13,10 @@
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "cloudinary": "^2.0.0",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
-    "multer": "^2.2.0",
-    "cloudinary": "^2.0.0"
+    "multer": "^2.2.0"
   },
   "devDependencies": {
     "prisma": "^5.22.0"
