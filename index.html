@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم واهز | Wahz Store Pro - الإدارة الذكية</title>
+    <title>لوحة تحكم واهز الإمبراطورية | Wahz Store Ultimate</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
@@ -15,70 +15,95 @@
             --bg-main: #f3f3f3;
             --text-dark: #111;
             --border-color: #ddd;
+            --success-color: #0e6216;
+            --warning-color: #e67e22;
+            --danger-color: #b12704;
         }
 
         * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; margin: 0; padding: 0; }
         body { background: var(--bg-main); display: flex; min-height: 100vh; color: var(--text-dark); }
         
         /* ================= Sidebar ستايل أمازون فخم ================= */
-        .sidebar { width: 260px; background: var(--sidebar-bg); color: white; padding: 25px 15px; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
-        .sidebar h2 { font-size: 1.4rem; text-align: center; margin-bottom: 35px; color: #fff; font-weight: 700; letter-spacing: -0.5px; }
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: white; padding: 25px 15px; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.1); position: sticky; top: 0; height: 100vh; }
+        .sidebar h2 { font-size: 1.4rem; text-align: center; margin-bottom: 35px; color: #fff; font-weight: 700; }
         .sidebar h2 span { color: var(--amazon-orange); }
         .sidebar a { display: flex; align-items: center; gap: 10px; padding: 12px 15px; color: #ccc; text-decoration: none; border-radius: 4px; margin-bottom: 8px; font-weight: 500; transition: 0.2s; }
         .sidebar a:hover, .sidebar a.active { background: var(--sidebar-hover); color: var(--amazon-yellow); font-weight: bold; }
-        .sidebar-footer { margin-top: auto; font-size: 0.75rem; color: #666; text-align: center; border-top: 1px solid #232f3e; padding-top: 15px; }
+        .sidebar-footer { margin-top: auto; font-size: 0.75rem; color: #888; text-align: center; border-top: 1px solid #232f3e; padding-top: 15px; }
 
         /* ================= Main Content Container ================= */
         .main-content { flex: 1; padding: 35px 40px; overflow-y: auto; }
-        .header { margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+        .header { margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .header h1 { color: var(--sidebar-bg); font-size: 1.8rem; font-weight: 700; }
-        .header p { font-size: 0.85rem; color: #565959; margin-top: 4px; }
+        
+        /* أدوات الفلترة والتحكم المتقدمة */
+        .controls-container { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .search-input, .filter-select { padding: 10px 12px; border: 1px solid #a2a6ac; border-radius: 4px; font-size: 0.9rem; outline: none; background: white; min-width: 180px; }
+        .search-input { min-width: 240px; }
+        .search-input:focus, .filter-select:focus { border-color: var(--amazon-orange); box-shadow: 0 0 4px rgba(255,153,0,0.4); }
+        
+        .btn-export { padding: 10px 15px; background: #232f3e; color: white; border: 1px solid #131921; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: 0.2s; }
+        .btn-export:hover { background: #37475a; }
 
         /* ================= Stats Cards Grid ================= */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 35px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 35px; }
         .stat-card { background: white; padding: 22px; border-radius: 4px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .stat-card h3 { color: #565959; font-size: 0.9rem; font-weight: 500; margin-bottom: 6px; }
-        .stat-card p { font-size: 2rem; font-weight: 700; color: var(--sidebar-bg); }
-        .stat-icon { font-size: 2.3rem; color: var(--sidebar-hover); opacity: 0.15; }
+        .stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-2px); }
+        .stat-card h3 { color: #565959; font-size: 0.85rem; font-weight: 500; margin-bottom: 6px; }
+        .stat-card p { font-size: 1.8rem; font-weight: 700; color: var(--sidebar-bg); }
+        .stat-icon { font-size: 2.2rem; opacity: 0.2; }
 
         /* ================= Layout Grid (Form & Table) ================= */
-        .grid-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start; }
-        @media (max-width: 1024px) { .grid-layout { grid-template-columns: 1fr; } }
+        .grid-layout { display: grid; grid-template-columns: 1fr 2.2fr; gap: 30px; align-items: start; }
+        @media (max-width: 1100px) { .grid-layout { grid-template-columns: 1fr; } }
         
-        .card { background: white; padding: 25px; border-radius: 4px; border: 1px solid var(--border-color); }
+        .card { background: white; padding: 25px; border-radius: 4px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .card h2 { font-size: 1.15rem; color: var(--sidebar-bg); margin-bottom: 20px; border-right: 4px solid var(--amazon-orange); padding-right: 10px; font-weight: 700; }
         
         /* ================= Modern Form Controls ================= */
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-size: 0.85rem; color: #111; margin-bottom: 6px; font-weight: 700; }
-        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #a2a6ac; border-radius: 4px; font-size: 0.9rem; outline: none; transition: 0.2s; color: var(--text-dark); background-color: #fff; }
-        input:focus, select:focus, textarea:focus { border-color: var(--amazon-orange); box-shadow: 0 0 4px rgba(255,153,0,0.4); }
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #a2a6ac; border-radius: 4px; font-size: 0.9rem; outline: none; transition: 0.2s; color: var(--text-dark); }
         
-        /* أزرار على طريقة أمازون للتحكم */
-        .btn-submit { width: 100%; padding: 12px; background: linear-gradient(to bottom, #f7dfa5, #f0c14b); border: 1px solid #a88734; color: #111; border-radius: 4px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.95rem; text-align: center; }
-        .btn-submit:hover { background: linear-gradient(to bottom, #f5d78e, #eeb933); border-color: #846a29; }
+        .preview-box { margin-top: 10px; display: none; text-align: center; border: 1px dashed var(--border-color); padding: 8px; border-radius: 4px; background: #fafafa; }
+        .preview-box img { max-width: 100%; max-height: 120px; object-fit: contain; }
+
+        .btn-submit { width: 100%; padding: 12px; background: linear-gradient(to bottom, #f7dfa5, #f0c14b); border: 1px solid #a88734; color: #111; border-radius: 4px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+        .btn-submit:hover:not(:disabled) { background: linear-gradient(to bottom, #f5d78e, #eeb933); border-color: #846a29; }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
         /* ================= Data Table Styling ================= */
         .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: right; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
         th { background: #f7f7f7; padding: 14px; font-size: 0.85rem; color: #565959; font-weight: 700; border-bottom: 2px solid var(--border-color); }
-        td { padding: 14px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; color: var(--text-dark); vertical-align: middle; }
+        td { padding: 14px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; vertical-align: middle; }
         tr:hover td { background-color: #fafafa; }
         
-        .prod-img { width: 48px; height: 48px; object-fit: contain; background: #fff; border-radius: 4px; border: 1px solid var(--border-color); padding: 2px; }
+        .prod-img { width: 48px; height: 48px; object-fit: contain; background: #fff; border-radius: 4px; border: 1px solid var(--border-color); }
         
+        /* شارات المخزن المتغيرة الألوان */
         .badge { padding: 4px 8px; border-radius: 2px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
-        .badge-stock { background: #e7f4e4; color: #0e6216; border: 1px solid #bce1b4; }
-        .badge-out { background: #fdf0f0; color: #b12704; border: 1px solid #f5c4c4; }
+        .badge-stock { background: #e7f4e4; color: var(--success-color); border: 1px solid #bce1b4; }
+        .badge-warning { background: #fff3cd; color: var(--warning-color); border: 1px solid #ffeeba; }
+        .badge-out { background: #fdf0f0; color: var(--danger-color); border: 1px solid #f5c4c4; }
         
         .actions-btn { display: flex; gap: 6px; }
-        .btn-sm { padding: 6px 12px; font-size: 0.8rem; width: auto; border-radius: 3px; font-weight: 500; cursor: pointer; border: 1px solid; }
-        .btn-edit { background: #eff0f3; border-color: #a2a6ac; color: #111; } .btn-edit:hover { background: #e3e4e6; }
-        .btn-danger { background: #b12704; border-color: #8b1e03; color: white; } .btn-danger:hover { background: #841d03; }
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; border-radius: 3px; cursor: pointer; border: 1px solid #a2a6ac; background: #eff0f3; }
+        .btn-sm:hover { background: #e3e4e6; }
+        .btn-danger { background: var(--danger-color); border-color: #8b1e03; color: white; } 
+        .btn-danger:hover { background: #841d03; }
+
+        /* ================= نظام الـ Toast الإشعارات الفخم ================= */
+        #toastContainer { position: fixed; top: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #131921; color: white; padding: 15px 25px; border-radius: 4px; font-size: 0.9rem; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; transform: translateX(-150%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-right: 5px solid var(--amazon-orange); }
+        .toast.show { transform: translateX(0); }
+        .toast.success { border-right-color: #2ecc71; }
+        .toast.error { border-right-color: var(--danger-color); }
     </style>
 </head>
 <body>
+
+    <div id="toastContainer"></div>
 
     <div class="sidebar">
         <h2>Wahz<span>Store</span> Pro ⚡</h2>
@@ -87,27 +112,55 @@
         <a href="/shop" target="_blank">🌐 عرض المتجر للمشترين</a>
         
         <div class="sidebar-footer">
-            لوحة الإشراف والتحديث الذكي<br>نسخة النظام v2.5
+            نظام واهز الاستراتيجي المتكامل<br>إصدار لوحة التحكم v3.0
         </div>
     </div>
 
     <div class="main-content">
         <div class="header">
-            <h1>لوحة القيادة والمخزون المركزي</h1>
-            <p>أهلاً بك يا فنان.. تحكم في معروضات المتجر، الأسعار، والمخزون المتاح لحظة بلحظة.</p>
+            <div>
+                <h1>غرفة التحكم المركزي والمخزون</h1>
+                <p>إدارة البضائع، مراقبة مستويات العجز، وتحليل القيمة المالية الحالية للمتجر.</p>
+            </div>
+            
+            <div class="controls-container">
+                <input type="text" id="searchBar" class="search-input" placeholder="🔍 بحث سريع بالاسم..." oninput="applyFilters()">
+                
+                <select id="filterCategory" class="filter-select" onchange="applyFilters()">
+                    <option value="ALL">كل الأقسام</option>
+                    <option value="لابتوبات جيمنج">لابتوبات جيمنج</option>
+                    <option value="لابتوبات عملي والدراسة">لابتوبات عملي والدراسة</option>
+                    <option value="إلكترونيات وهواتف">إلكترونيات وهواتف</option>
+                    <option value="إكسسوارات وهاردوير">إكسسوارات وهاردوير</option>
+                    <option value="عام أخرى">عام أخرى</option>
+                </select>
+
+                <select id="filterStock" class="filter-select" onchange="applyFilters()">
+                    <option value="ALL">كل مستويات المخزن</option>
+                    <option value="AVAILABLE">المتوفر فقط</option>
+                    <option value="LOW">مخزون حرج (أقل من 5 قطع)</option>
+                    <option value="OUT">المنتهي (نفد)</option>
+                </select>
+
+                <button class="btn-export" onclick="exportInventoryToCSV()">📥 تصدير Excel</button>
+            </div>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div><h3>إجمالي المنتجات بالسيستم</h3><p id="totalProductsCount">0</p></div>
+                <div><h3>تنوع المنتجات</h3><p id="totalProductsCount">0</p></div>
                 <div class="stat-icon">📦</div>
             </div>
             <div class="stat-card">
-                <div><h3>منتجات نفدت بالمخازن</h3><p id="outOfStockCount" style="color: #b12704;">0</p></div>
+                <div><h3>المنتجات النفدة</h3><p id="outOfStockCount" style="color: var(--danger-color);">0</p></div>
                 <div class="stat-icon">⚠️</div>
             </div>
             <div class="stat-card">
-                <div><h3>قاعدة البيانات الحالية</h3><p style="color: #0e6216; font-size: 1.4rem;">Prisma + SQLite</p></div>
+                <div><h3>القيمة المالية الكلية للمخزن</h3><p id="totalInventoryValue" style="color: #27ae60;">0 ج</p></div>
+                <div class="stat-icon">💰</div>
+            </div>
+            <div class="stat-card">
+                <div><h3>المحرك والـ DB</h3><p style="color: var(--success-color); font-size: 1.2rem;">Prisma ORM</p></div>
                 <div class="stat-icon">⚡</div>
             </div>
         </div>
@@ -130,7 +183,6 @@
                             <option value="لابتوبات عملي والدراسة">لابتوبات عملي والدراسة</option>
                             <option value="إلكترونيات وهواتف">إلكترونيات وهواتف</option>
                             <option value="إكسسوارات وهاردوير">إكسسوارات وهاردوير</option>
-                            <option value="ملابس وأزياء">ملابس وأزياء</option>
                             <option value="عام أخرى">عام أخرى</option>
                         </select>
                     </div>
@@ -146,13 +198,16 @@
                     </div>
                     
                     <div class="form-group">
-                        <label>الوصف التفصيلي (يظهر في كارت الشراء)</label>
-                        <textarea id="description" rows="4" placeholder="اكتب مواصفات المنتج، الضمان، والمميزات..."></textarea>
+                        <label>الوصف التفصيلي</label>
+                        <textarea id="description" rows="3" placeholder="اكتب المواصفات، الضمان، والمميزات..."></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label>رابط الصورة أو ملف الرفع</label>
-                        <input type="file" id="image" accept="image/*">
+                        <label>صورة المنتج المرفوعة</label>
+                        <input type="file" id="image" accept="image/*" onchange="previewImage(this)">
+                        <div class="preview-box" id="imgPreviewBox">
+                            <img id="imgPreview" src="" alt="معاينة">
+                        </div>
                     </div>
                     
                     <button type="submit" class="btn-submit" id="submitBtn">حفظ المنتج وتحديث النظام</button>
@@ -181,32 +236,149 @@
 
     <script>
         let editMode = false;
+        let cachedProducts = []; 
+
+        // دالة عرض الإشعارات الاحترافية (Toast)
+        function triggerNotification(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${type === 'success' ? '🔹' : '⚠️'}</span> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 50);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3500);
+        }
 
         async function fetchDashboardData() {
-            const res = await fetch('/products');
-            const products = await res.json();
+            try {
+                const res = await fetch('/products');
+                cachedProducts = await res.json();
+                applyFilters(); // تطبيق الفلترة الحالية على البيانات الجديدة
+            } catch (err) {
+                triggerNotification("حدث خطأ أثناء جلب البيانات من السيرفر", "error");
+            }
+        }
+
+        // دالة الفلترة الذكية المدمجة (بحث + قسم + حالة مخزن)
+        function applyFilters() {
+            const searchQuery = document.getElementById('searchBar').value.trim().toLowerCase();
+            const categoryFilter = document.getElementById('filterCategory').value;
+            const stockFilter = document.getElementById('filterStock').value;
+
+            let filtered = cachedProducts;
+
+            // 1. تصفية بالبحث
+            if (searchQuery) {
+                filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery));
+            }
+
+            // 2. تصفية بالقسم
+            if (categoryFilter !== 'ALL') {
+                filtered = filtered.filter(p => p.category === categoryFilter);
+            }
+
+            // 3. تصفية بحالة المخزون
+            if (stockFilter === 'AVAILABLE') {
+                filtered = filtered.filter(p => p.stock > 0);
+            } else if (stockFilter === 'LOW') {
+                filtered = filtered.filter(p => p.stock > 0 && p.stock <= 5);
+            } else if (stockFilter === 'OUT') {
+                filtered = filtered.filter(p => p.stock <= 0);
+            }
+
+            renderTableData(filtered);
+        }
+
+        function renderTableData(productsToRender) {
+            // تحديث العدادات العامة بناء على كل البيانات الأصلية وليس المفلترة فقط
+            document.getElementById('totalProductsCount').innerText = cachedProducts.length;
+            document.getElementById('outOfStockCount').innerText = cachedProducts.filter(p => p.stock <= 0).length;
             
-            document.getElementById('totalProductsCount').innerText = products.length;
-            document.getElementById('outOfStockCount').innerText = products.filter(p => p.stock <= 0).length;
+            // حساب القيمة المالية الكلية للمخزن (السعر × الكمية)
+            const totalValue = cachedProducts.reduce((sum, p) => sum + (p.price * p.stock), 0);
+            document.getElementById('totalInventoryValue').innerText = totalValue.toLocaleString('ar-EG') + " ج";
 
             const tbody = document.getElementById('productsTableBody');
-            tbody.innerHTML = products.map(p => `
-                <tr>
-                    <td><img class="prod-img" src="${p.imageUrl || 'https://via.placeholder.com/50'}" alt="product" /></td>
-                    <td><strong>${p.name}</strong></td>
-                    <td><span style="color:#565959; font-size:0.85rem">${p.category}</span></td>
-                    <td style="font-weight:bold; color:#111">${p.price} ج</td>
-                    <td>${p.stock > 0 ? `<span class="badge badge-stock">متاح (${p.stock} قطع)</span>` : `<span class="badge badge-out">نفد مؤقتاً</span>`}</td>
-                    <td class="actions-btn">
-                        <button class="btn-sm btn-edit" onclick="setEditProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.category}', ${p.price}, ${p.stock}, '${(p.description || '').replace(/'/g, "\\'")}')">تعديل</button>
-                        <button class="btn-sm btn-danger" onclick="deleteProduct('${p.id}')">حذف</button>
-                    </td>
-                </tr>
-            `).join('');
+            if (productsToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:#888;">لا توجد منتجات مطابقة لخيارات البحث الحالية.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = productsToRender.map(p => {
+                // تحديد شارة المخزن ولونها ديناميكياً بناء على الرقم
+                let stockBadge = `<span class="badge badge-stock">متاح (${p.stock} قطع)</span>`;
+                if (p.stock <= 0) {
+                    stockBadge = `<span class="badge badge-out">نفد مؤقتاً</span>`;
+                } else if (p.stock <= 5) {
+                    stockBadge = `<span class="badge badge-warning">مخزون حرج (${p.stock})</span>`;
+                }
+
+                return `
+                    <tr>
+                        <td><img class="prod-img" src="${p.imageUrl || 'https://via.placeholder.com/50'}" alt="product" /></td>
+                        <td><strong>${p.name}</strong></td>
+                        <td><span style="color:#565959; font-size:0.85rem">${p.category}</span></td>
+                        <td style="font-weight:bold; color:#111">${p.price} ج</td>
+                        <td>${stockBadge}</td>
+                        <td class="actions-btn">
+                            <button class="btn-sm" onclick="setEditProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.category}', ${p.price}, ${p.stock}, '${(p.description || '').replace(/'/g, "\\'")}')">تعديل</button>
+                            <button class="btn-sm btn-danger" onclick="deleteProduct('${p.id}')">حذف</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // دالة تصدير مخزون المنتجات بالكامل لملف Excel (CSV)
+        function exportInventoryToCSV() {
+            if (cachedProducts.length === 0) {
+                triggerNotification("لا توجد بيانات لتصديرها حالياً", "error");
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // لدعم اللغة العربية في الـ Excel
+            csvContent += "كود المنتج,اسم المنتج,القسم,السعر,المخزن المتاح\n";
+            
+            cachedProducts.forEach(p => {
+                csvContent += `"${p.id}","${p.name}","${p.category}",${p.price},${p.stock}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Wahz_Store_Inventory_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            triggerNotification("تم استخراج شيت المخزن بنجاح!");
+        }
+
+        function previewImage(input) {
+            const box = document.getElementById('imgPreviewBox');
+            const img = document.getElementById('imgPreview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    box.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                box.style.display = 'none';
+            }
         }
 
         async function saveProduct(e) {
             e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            
+            submitBtn.disabled = true;
+            submitBtn.innerText = "جاري الاتصال بقاعدة البيانات...";
+
             const formData = new FormData();
             formData.append('name', document.getElementById('name').value);
             formData.append('category', document.getElementById('category').value);
@@ -226,11 +398,20 @@
                 method = 'PUT';
             }
 
-            const res = await fetch(url, { method: method, body: formData });
-            if(res.ok) {
-                alert(editMode ? "🎉 تم تحديث بيانات المنتج بنجاح وتعميمها!" : "🎉 تم إضافة المنتج الجديد لقاعدة البيانات بنجاح!");
-                resetForm();
-                fetchDashboardData();
+            try {
+                const res = await fetch(url, { method: method, body: formData });
+                if(res.ok) {
+                    triggerNotification(editMode ? "تم تحديث بيانات البضاعة بنجاح!" : "تم تسجيل المنتج في الـ Database بنجاح!");
+                    resetForm();
+                    await fetchDashboardData();
+                } else {
+                    triggerNotification("فشلت العملية، تأكد من مدخلات السيرفر", "error");
+                }
+            } catch (err) {
+                triggerNotification("خطأ بالاتصال بالخلفية العميقة", "error");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = editMode ? "تأكيد وتحديث البيانات" : "حفظ المنتج وتحديث النظام";
             }
         }
 
@@ -246,6 +427,9 @@
             document.getElementById('price').value = price;
             document.getElementById('stock').value = stock;
             document.getElementById('description').value = desc;
+            
+            document.getElementById('imgPreviewBox').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // صعود سلس لأعلى الصفحة لرؤية الفورم أثناء التعديل
         }
 
         function resetForm() {
@@ -254,12 +438,20 @@
             document.getElementById('formTitle').innerText = "إضافة منتج جديد للسيستم";
             document.getElementById('submitBtn').innerText = "حفظ المنتج وتحديث النظام";
             document.getElementById('cancelEditBtn').style.display = "none";
+            document.getElementById('imgPreviewBox').style.display = 'none';
         }
 
         async function deleteProduct(id) {
-            if(confirm('🚨 تحذير: هل أنت متأكد من مسح هذا المنتج نهائياً من قاعدة البيانات؟ لا يمكن التراجع.')) {
-                await fetch(`/delete/${id}`, { method: 'DELETE' });
-                fetchDashboardData();
+            if(confirm('🚨 هل أنت متأكد من مسح هذا المنتج نهائياً من السيستم؟')) {
+                try {
+                    const res = await fetch(`/delete/${id}`, { method: 'DELETE' });
+                    if(res.ok) {
+                        triggerNotification("تم حذف المنتج وتحديث المخزن الفعلي.", "success");
+                        await fetchDashboardData();
+                    }
+                } catch (err) {
+                    triggerNotification("فشل الحذف"، "error");
+                }
             }
         }
 
