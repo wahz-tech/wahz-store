@@ -3,58 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wahz Store - إدارة الطلبات</title>
+    <title>Wahz Store Premium - إدارة الطلبات</title>
+    
     <style>
-        :root { --primary: #2563eb; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
-        .header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 30px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .header h1 { margin: 0; color: var(--primary); }
-        .nav-links a { text-decoration: none; color: #fff; background: var(--text); padding: 8px 15px; border-radius: 5px; font-size: 14px; margin-right: 10px; }
-        .card { background: var(--card); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { text-align: right; padding: 12px; border-bottom: 1px solid #e5e7eb; }
-        th { background-color: #f9fafb; }
-        select { padding: 5px; border-radius: 5px; }
-        .status-pending { color: #d97706; font-weight: bold; }
-        .status-shipped { color: #2563eb; font-weight: bold; }
-        .status-delivered { color: #16a34a; font-weight: bold; }
-        .status-cancelled { color: #dc2626; font-weight: bold; }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
+        
+        :root {
+            var(--bg-base): #080b11;
+            --bg-base: #080b11;
+            --bg-surface: #111622;
+            --bg-card: #171e2e;
+            --accent-grad: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            --text-pure: #ffffff;
+            --text-body: #a0aec0;
+            --danger-color: #ff4d4f;
+            --success-color: #25D366;
+            --glass-blur: blur(20px);
+        }
+
+        * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-base); color: var(--text-pure);
+            -webkit-font-smoothing: antialiased; padding-top: 100px;
+        }
+
+        /* شريط التمرير */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: #232d42; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ffd700; }
+
+        /* ================= Header ================= */
+        header { 
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; 
+            background: rgba(11, 16, 26, 0.75); backdrop-filter: var(--glass-blur); 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+            padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; 
+        }
+
+        .brand { font-size: 1.6rem; font-weight: 900; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 12px; direction: ltr; }
+        .brand span { background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-style: italic; }
+
+        .nav-links a {
+            text-decoration: none; color: var(--text-body); background: rgba(255, 255, 255, 0.03); 
+            padding: 10px 20px; border-radius: 50px; font-size: 0.95rem; font-weight: 700; 
+            border: 1px solid rgba(255, 255, 255, 0.05); transition: 0.3s;
+        }
+        .nav-links a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; border-color: rgba(255, 215, 0, 0.3); }
+
+        /* ================= الحاوية والبطاقات ================= */
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 30px 40px 30px; }
+        
+        .card {
+            background: var(--bg-card); padding: 30px; border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.03); box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            font-size: 1.4rem; font-weight: 900; color: #fff; margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;
+        }
+
+        /* ================= الجدول ================= */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 1000px; }
+        th, td { text-align: right; padding: 18px 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        th { background-color: rgba(255, 255, 255, 0.02); color: #ffd700; font-weight: 800; font-size: 0.95rem; white-space: nowrap; }
+        td { color: var(--text-body); font-size: 0.95rem; font-weight: 500; vertical-align: middle; }
+        
+        .order-id { font-weight: 900; color: #fff; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 8px; }
+        .order-total { color: #ffd700; font-weight: 900; }
+
+        /* ================= المدخلات (Select) ================= */
+        select {
+            padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0,0,0,0.3); color: #fff; font-size: 0.9rem; font-weight: 600;
+            outline: none; cursor: pointer; transition: 0.3s;
+        }
+        select:focus { border-color: #ffd700; }
+        select option { background: var(--bg-card); color: #fff; }
+
+        /* ================= حالات الطلب (Badges) ================= */
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 800; display: inline-block; white-space: nowrap; }
+        .badge-pending { background: rgba(217, 119, 6, 0.15); color: #fbbf24; border: 1px solid rgba(217, 119, 6, 0.3); }
+        .badge-shipped { background: rgba(37, 99, 235, 0.15); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.3); }
+        .badge-delivered { background: rgba(22, 163, 74, 0.15); color: #4ade80; border: 1px solid rgba(22, 163, 74, 0.3); }
+        .badge-cancelled { background: rgba(220, 38, 38, 0.15); color: #f87171; border: 1px solid rgba(220, 38, 38, 0.3); }
+
+        /* ================= زر الطباعة ================= */
+        .btn-print {
+            background: rgba(255, 255, 255, 0.05); color: #fff;
+            border: 1px solid rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 10px;
+            cursor: pointer; transition: 0.3s; font-weight: 700; font-size: 0.85rem; margin-right: 10px;
+            display: inline-flex; align-items: center; gap: 5px;
+        }
+        .btn-print:hover { background: #fff; color: #000; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+
+        /* ================= التنبيهات (Toast) ================= */
+        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
+        .toast {
+            min-width: 300px; margin-top: 15px; padding: 18px 25px; border-radius: 14px;
+            color: #fff; font-weight: 700; font-size: 0.95rem;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            opacity: 0; transform: translateX(50px); transition: 0.4s;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { border-right: 4px solid var(--success-color); }
+        .toast.error { border-right: 4px solid var(--danger-color); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>إدارة الطلبات المكتملة</h1>
+    <header>
+        <a href="/" class="brand">
+            <!-- اللوجو الـ SVG -->
+            <svg width="40" height="40" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" style="border-radius: 10px; box-shadow: 0 0 15px rgba(255, 153, 0, 0.4);">
+                <defs>
+                    <linearGradient id="wahzGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#ffd700" />
+                        <stop offset="100%" stop-color="#ff5500" />
+                    </linearGradient>
+                </defs>
+                <rect width="400" height="400" fill="#171e2e" />
+                <path d="M 80,100 L 140,300 L 200,180 L 260,300 L 320,100 L 270,100 L 230,220 L 200,120 L 170,220 L 130,100 Z" fill="url(#wahzGrad)" />
+            </svg>
+            Wahz Store <span>Orders</span>
+        </a>
         <div class="nav-links">
             <a href="/">⬅️ العودة للوحة المنتجات</a>
         </div>
-    </div>
+    </header>
 
-    <div class="card">
-        <h2>الطلبات الواردة</h2>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>رقم الطلب</th>
-                        <th>اسم العميل</th>
-                        <th>رقم الهاتف</th>
-                        <th>العنوان</th>
-                        <th>الإجمالي</th>
-                        <th>تاريخ الطلب</th>
-                        <th>الحالة</th>
-                        <th>تحديث الحالة</th>
-                    </tr>
-                </thead>
-                <tbody id="ordersTableBody">
-                    <tr><td colspan="8" style="text-align: center;">جاري تحميل الطلبات...</td></tr>
-                </tbody>
-            </table>
+    <div class="container">
+        <div class="card">
+            <h2>إدارة طلبات العملاء المكتملة 📦</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>العميل</th>
+                            <th>الهاتف</th>
+                            <th>العنوان</th>
+                            <th>التاريخ</th>
+                            <th>الإجمالي</th>
+                            <th>الحالة الحالية</th>
+                            <th>إجراءات (تحديث / طباعة)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <tr><td colspan="8" style="text-align: center; padding: 40px;">جاري تحميل الطلبات من قاعدة البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
+    <!-- حاوية الإشعارات -->
+    <div id="toast-container"></div>
+
     <script>
         const authHeaderValue = 'Basic ' + btoa('yousef_wahz:yoyomyom12');
+        let currentOrders = []; // هنحفظ فيها الطلبات عشان نستخدمها في الطباعة
+
+        // دالة التنبيهات الموحدة
+        function triggerNotification(message, type = "success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icon = type === 'success' ? '✅' : '🛑';
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
 
         async function fetchOrders() {
             try {
@@ -62,10 +190,10 @@
                     headers: { 'Authorization': authHeaderValue }
                 });
                 if (!res.ok) throw new Error("فشل الجلب");
-                const orders = await res.json();
-                renderOrders(orders);
+                currentOrders = await res.json();
+                renderOrders(currentOrders);
             } catch (err) {
-                document.getElementById('ordersTableBody').innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">فشل في تحميل الطلبات. تأكد من صلاحيات المسؤول.</td></tr>';
+                document.getElementById('ordersTableBody').innerHTML = '<tr><td colspan="8" style="text-align: center; color: #ff4d4f; padding: 40px;">فشل في تحميل الطلبات. تأكد من صلاحيات المسؤول وتوصيل السيرفر.</td></tr>';
             }
         }
 
@@ -74,35 +202,36 @@
             tbody.innerHTML = '';
 
             if (orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد طلبات حتى الآن.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">لا توجد طلبات واردة حتى الآن.</td></tr>';
                 return;
             }
 
             orders.forEach(order => {
                 const date = new Date(order.createdAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
                 
-                let statusClass = `status-${order.status}`;
+                let badgeClass = `badge-${order.status}`;
                 let statusText = order.status === 'pending' ? 'قيد الانتظار ⏳' : 
                                  order.status === 'shipped' ? 'جاري التوصيل 🚚' : 
                                  order.status === 'delivered' ? 'تم التوصيل ✅' : 'ملغي ❌';
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>#${order.id}</td>
-                    <td>${order.customer}</td>
+                    <td><span class="order-id">#${order.id}</span></td>
+                    <td style="color: #fff; font-weight: 700;">${order.customer}</td>
                     <td dir="ltr">${order.phone}</td>
                     <td>${order.address}</td>
-                    <td>${order.total} ج.م</td>
-                    <td dir="ltr">${date}</td>
-                    <td class="${statusClass}">${statusText}</td>
-                    <td>
+                    <td dir="ltr" style="font-size: 0.85rem;">${date}</td>
+                    <td class="order-total">${order.total} ج.م</td>
+                    <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                    <td style="display: flex; align-items: center; gap: 10px;">
                         <select onchange="updateStatus('${order.id}', this.value)">
-                            <option value="" disabled selected>تغيير...</option>
+                            <option value="" disabled selected>تغيير الحالة</option>
                             <option value="pending">قيد الانتظار</option>
                             <option value="shipped">جاري التوصيل</option>
                             <option value="delivered">تم التوصيل</option>
                             <option value="cancelled">إلغاء الطلب</option>
                         </select>
+                        <button class="btn-print" onclick="printInvoice('${order.id}')">🖨️ طباعة</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -121,14 +250,115 @@
                 });
                 
                 if (res.ok) {
-                    alert('تم تحديث حالة الطلب بنجاح!');
-                    fetchOrders();
+                    triggerNotification('تم تحديث حالة الطلب بنجاح وتوثيقها.');
+                    fetchOrders(); // تحديث الجدول عشان لون الـ Badge يتغير
                 } else {
-                    alert('حدث خطأ أثناء تحديث الحالة.');
+                    triggerNotification('حدث خطأ أثناء تحديث الحالة.', 'error');
                 }
             } catch (err) {
-                alert('خطأ في الاتصال بالسيرفر.');
+                triggerNotification('خطأ في الاتصال بالسيرفر.', 'error');
             }
+        }
+
+        // دالة طباعة الفاتورة بشكل احترافي
+        function printInvoice(orderId) {
+            const order = currentOrders.find(o => o.id == orderId);
+            if (!order) return;
+
+            const printWindow = window.open('', '_blank', 'width=800,height=900');
+            const printDate = new Date(order.createdAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+
+            const invoiceHTML = `
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>فاتورة طلب #${order.id}</title>
+                    <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
+                        body { font-family: 'Tajawal', sans-serif; padding: 40px; color: #111; line-height: 1.6; }
+                        .invoice-container { max-width: 800px; margin: 0 auto; border: 1px solid #ddd; padding: 40px; border-radius: 10px; }
+                        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+                        .store-title { font-size: 32px; font-weight: 900; margin: 0; }
+                        .invoice-title { font-size: 18px; color: #555; margin-top: 5px; }
+                        .order-info { display: flex; justify-content: space-between; margin-bottom: 30px; }
+                        .info-box { background: #f9f9f9; padding: 15px; border-radius: 8px; width: 48%; }
+                        .info-box h3 { margin-top: 0; color: #333; font-size: 16px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 12px 15px; text-align: right; }
+                        th { background-color: #f1f1f1; font-weight: 700; }
+                        .total-row td { font-weight: 900; font-size: 18px; background-color: #fafafa; }
+                        .footer { text-align: center; margin-top: 50px; font-size: 14px; color: #666; border-top: 1px solid #eee; padding-top: 20px; }
+                        @media print {
+                            body { -webkit-print-color-adjust: exact; padding: 0; }
+                            .invoice-container { border: none; padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="invoice-container">
+                        <div class="header">
+                            <h1 class="store-title">Wahz Store</h1>
+                            <div class="invoice-title">فاتورة ضريبية مبسطة للعميل</div>
+                        </div>
+
+                        <div class="order-info">
+                            <div class="info-box">
+                                <h3>تفاصيل الطلب</h3>
+                                <strong>رقم الطلب:</strong> #${order.id}<br>
+                                <strong>تاريخ الإصدار:</strong> <span dir="ltr">${printDate}</span><br>
+                                <strong>حالة الدفع:</strong> الدفع عند الاستلام
+                            </div>
+                            <div class="info-box">
+                                <h3>بيانات العميل</h3>
+                                <strong>الاسم:</strong> ${order.customer}<br>
+                                <strong>الهاتف:</strong> <span dir="ltr">${order.phone}</span><br>
+                                <strong>العنوان:</strong> ${order.address}
+                            </div>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>البيان / الوصف</th>
+                                    <th style="width: 200px;">القيمة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>مشتريات إلكترونية من متجر واهز (شاملة تفاصيل السلة)</td>
+                                    <td>${order.total} ج.م</td>
+                                </tr>
+                                <tr>
+                                    <td>رسوم التوصيل</td>
+                                    <td>يتم تحديدها مع المندوب</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td>الإجمالي النهائي المطلوب دفعه</td>
+                                    <td>${order.total} ج.م</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="footer">
+                            <p>شكراً لثقتكم وتسوقكم من Wahz Store ❤️</p>
+                            <p>في حالة وجود أي استفسار، يرجى التواصل مع الدعم الفني.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            printWindow.document.write(invoiceHTML);
+            printWindow.document.close();
+            
+            // ننتظر ثانية عشان الخطوط (Tajawal) تلحق تحمل قبل الطباعة
+            setTimeout(() => {
+                printWindow.focus();
+                printWindow.print();
+                // يفضل تسيب النافذة تتقفل مانيوال عشان بعض المتصفحات بتعلق لو اتقفلت فوراً بالكود
+                // printWindow.close(); 
+            }, 500);
         }
 
         window.onload = fetchOrders;
