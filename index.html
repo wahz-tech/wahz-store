@@ -4,231 +4,216 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wahz Store Premium - لوحة تحكم الإدارة</title>
+    
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
+        
         :root {
-            --primary-color: #2563eb;
-            --danger-color: #dc2626;
-            --success-color: #16a34a;
-            --bg-color: #f3f4f6;
-            --card-bg: #ffffff;
-            --text-color: #1f2937;
-            
-            /* ألوان شاشة القفل الفاخرة */
-            --auth-bg: #080b11;
-            --auth-surface: #111622;
-            --auth-gold-grad: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            /* نفس ألوان المتجر الأساسي */
+            --bg-base: #080b11;
+            --bg-surface: #111622;
+            --bg-card: #171e2e;
+            --accent-grad: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            --orange-grad: linear-gradient(135deg, #ff9900 0%, #ff5500 100%);
+            --text-pure: #ffffff;
+            --text-body: #a0aec0;
+            --danger-color: #ff4d4f;
+            --success-color: #25D366;
+            --glass-blur: blur(20px);
         }
 
         * {
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
+            background-color: var(--bg-base);
+            color: var(--text-pure);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            padding-top: 100px;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card-bg);
-            padding: 15px 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+        /* مخصص لشريط التمرير */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: #232d42; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ffd700; }
+
+        /* ================= Header (نفس استايل المتجر) ================= */
+        header { 
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; 
+            background: rgba(11, 16, 26, 0.75); backdrop-filter: var(--glass-blur); 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+            padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; 
         }
 
-        .header h1 {
-            margin: 0;
-            color: var(--primary-color);
-        }
+        .brand { font-size: 1.6rem; font-weight: 900; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 12px; direction: ltr; }
+        .brand-logo-box { background: var(--orange-grad); color: #000; width: 40px; height: 40px; border-radius: 10px; font-size: 1.5rem; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(255, 153, 0, 0.4); }
+        .brand span { background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-style: italic; }
 
+        .nav-links { display: flex; gap: 15px; }
         .nav-links a {
-            text-decoration: none;
-            color: #fff;
-            background: var(--text-color);
-            padding: 8px 15px;
-            border-radius: 5px;
-            margin-right: 10px;
-            font-size: 14px;
+            text-decoration: none; color: var(--text-body); background: rgba(255, 255, 255, 0.03); 
+            padding: 10px 20px; border-radius: 50px; font-size: 0.95rem; font-weight: 700; 
+            border: 1px solid rgba(255, 255, 255, 0.05); transition: 0.3s;
         }
+        .nav-links a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; border-color: rgba(255, 215, 0, 0.3); }
 
+        /* ================= تخطيط الصفحة ================= */
         .container {
             display: grid;
             grid-template-columns: 1fr 2fr;
-            gap: 20px;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px 40px 30px;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .container { grid-template-columns: 1fr; }
         }
 
+        /* ================= الكروت (نفس كروت المنتجات) ================= */
         .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
-        .form-group {
-            margin-bottom: 15px;
+        .card h2 {
+            font-size: 1.4rem; font-weight: 900; color: #fff; margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;
         }
 
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
+        /* ================= الفورم والمدخلات ================= */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-body); font-size: 0.95rem; }
+        
         input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 14px;
+            width: 100%; padding: 14px 16px; border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(0,0,0,0.2); color: #fff;
+            font-size: 0.95rem; outline: none; transition: 0.3s;
         }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            background-color: #1d4ed8;
-        }
-
-        button:disabled {
-            background-color: #93c5fd;
-            cursor: not-allowed;
-        }
-
-        .btn-cancel {
-            background-color: #6b7280;
-            margin-top: 10px;
+        input:focus, textarea:focus {
+            border-color: #ffd700; background: rgba(0,0,0,0.4);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
         }
         
-        .btn-cancel:hover { background-color: #4b5563; }
+        /* إخفاء ستايل زر رفع الملفات الافتراضي وتجميله */
+        input[type="file"] { padding: 10px; background: rgba(255,255,255,0.02); color: var(--text-body); cursor: pointer; }
 
-        .btn-delete { background-color: var(--danger-color); padding: 5px 10px; font-size: 12px; border: none; color: white; border-radius: 3px; cursor: pointer; }
-        .btn-edit { background-color: #f59e0b; padding: 5px 10px; font-size: 12px; border: none; color: white; border-radius: 3px; cursor: pointer; margin-bottom: 5px; }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
+        /* ================= الأزرار ================= */
+        button[type="submit"] {
+            width: 100%; padding: 16px; border-radius: 14px; border: none;
+            background: var(--accent-grad); color: #000; font-size: 1.1rem;
+            font-weight: 900; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2); margin-top: 10px;
         }
+        button[type="submit"]:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4); }
+        button[type="submit"]:disabled { background: #4b5563; color: #9ca3af; cursor: not-allowed; box-shadow: none; transform: none; }
 
-        th, td {
-            text-align: right;
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
+        .btn-cancel {
+            width: 100%; padding: 14px; background: rgba(255,255,255,0.05); color: #fff;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; margin-top: 15px;
+            font-weight: 700; cursor: pointer; transition: 0.3s;
         }
+        .btn-cancel:hover { background: rgba(255,255,255,0.1); }
 
-        th { background-color: #f9fafb; }
+        /* ================= الجدول ================= */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: right; padding: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        th { background-color: rgba(255, 255, 255, 0.02); color: #ffd700; font-weight: 800; }
+        td { color: var(--text-body); font-size: 0.95rem; font-weight: 500; }
+        
+        .product-img { width: 60px; height: 60px; object-fit: contain; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 5px; border: 1px solid rgba(255,255,255,0.05); }
 
-        .product-img {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 5px;
+        .btn-edit, .btn-delete {
+            padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700;
+            border: none; cursor: pointer; transition: 0.3s; margin-left: 5px; color: #fff;
         }
+        .btn-edit { background: rgba(255, 140, 0, 0.2); color: #ff9900; border: 1px solid rgba(255, 140, 0, 0.3); }
+        .btn-edit:hover { background: #ff9900; color: #000; }
+        
+        .btn-delete { background: rgba(255, 77, 79, 0.2); color: #ff4d4f; border: 1px solid rgba(255, 77, 79, 0.3); }
+        .btn-delete:hover { background: #ff4d4f; color: #fff; }
 
-        #toast-container {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 1000;
-        }
-
+        /* ================= التنبيهات (Toast) ================= */
+        #toast-container { position: fixed; bottom: 30px; right: 30px; left: auto; z-index: 9999; }
         .toast {
-            min-width: 250px;
-            margin-top: 10px;
-            padding: 15px 20px;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.3s, transform 0.3s;
+            min-width: 300px; margin-top: 15px; padding: 18px 25px; border-radius: 14px;
+            color: #fff; font-weight: 700; font-size: 0.95rem;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            opacity: 0; transform: translateX(50px); transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            display: flex; align-items: center; gap: 10px;
         }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .toast.success { background-color: var(--success-color); }
-        .toast.error { background-color: var(--danger-color); }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { border-right: 4px solid var(--success-color); }
+        .toast.error { border-right: 4px solid var(--danger-color); }
     </style>
 </head>
 <body>
 
-    <div id="auth-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--auth-bg); z-index: 999999; display: flex; align-items: center; justify-content: center; direction: rtl; transition: opacity 0.5s ease;">
-        <div style="background: var(--auth-surface); padding: 40px 30px; border-radius: 20px; border: 1px solid rgba(255, 215, 0, 0.2); box-shadow: 0 20px 50px rgba(0,0,0,0.6); width: 100%; max-width: 420px; text-align: center; box-sizing: border-box; position: relative;">
-            
+    <div id="auth-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-base); z-index: 999999; display: flex; align-items: center; justify-content: center; direction: rtl; transition: opacity 0.5s ease;">
+        <div style="background: var(--bg-surface); padding: 40px 30px; border-radius: 20px; border: 1px solid rgba(255, 215, 0, 0.2); box-shadow: 0 20px 50px rgba(0,0,0,0.6); width: 100%; max-width: 420px; text-align: center; box-sizing: border-box;">
             <div style="background: linear-gradient(135deg, #ff9900 0%, #ff5500 100%); color: #000; width: 50px; height: 50px; border-radius: 14px; font-size: 2rem; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);">W</div>
+            <h2 style="color: #ffffff; margin: 0 0 5px 0; font-size: 24px; font-weight: 800;">Wahz Store <span style="background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Premium</span></h2>
+            <p style="color: var(--text-body); margin: 0 0 30px 0; font-size: 14px; font-weight: 500;">بوابة الإدارة وصلاحيات النظام</p>
             
-            <h2 style="color: #ffffff; margin: 0 0 5px 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">Wahz Store <span style="background: var(--auth-gold-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Premium</span></h2>
-            <p style="color: #637381; margin: 0 0 30px 0; font-size: 14px; font-weight: 500;">بوابة الإدارة وصلاحيات النظام</p>
-            
-            <div style="margin-bottom: 20px; text-align: right;">
-                <label style="color: #fff; display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600;">اسم الإدمن</label>
-                <input type="text" id="admin-username" placeholder="ادخل يوزر الحساب" style="width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); color: #fff; font-size: 15px; outline: none; box-sizing: border-box; transition: 0.3s;">
+            <div class="form-group" style="text-align: right;">
+                <label style="color: #fff;">اسم الإدمن</label>
+                <input type="text" id="admin-username" placeholder="ادخل يوزر الحساب">
+            </div>
+            <div class="form-group" style="text-align: right; margin-bottom: 25px;">
+                <label style="color: #fff;">كلمة المرور السرية</label>
+                <input type="password" id="admin-password" placeholder="••••••••">
             </div>
             
-            <div style="margin-bottom: 25px; text-align: right;">
-                <label style="color: #fff; display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600;">كلمة المرور السرية</label>
-                <input type="password" id="admin-password" placeholder="••••••••" style="width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); color: #fff; font-size: 15px; outline: none; box-sizing: border-box; transition: 0.3s;">
-            </div>
-            
-            <button onclick="validateAdminLogin()" style="width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--auth-gold-grad); color: #000; font-size: 16px; font-weight: 900; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 20px rgba(255, 215, 0, 0.25);">
+            <button onclick="validateAdminLogin()" style="width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--accent-grad); color: #000; font-size: 16px; font-weight: 900; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 20px rgba(255, 215, 0, 0.25);">
                 تسجيل الدخول للنظام 🔐
             </button>
-            
             <p id="login-error-msg" style="color: #ff4d4d; font-size: 14px; margin: 15px 0 0 0; display: none; font-weight: 600; background: rgba(255, 77, 77, 0.1); padding: 8px; border-radius: 8px;">🛑 البيانات خاطئة! لست أدمن متجر واهز بريميوم.</p>
         </div>
     </div>
 
     <div id="main-admin-content" style="display: none;">
-        <div class="header">
-            <h1>Wahz Store - الإدارة</h1>
+        
+        <header>
+            <a href="/" class="brand">
+                <div class="brand-logo-box">W</div>
+                Wahz Store <span>Admin</span>
+            </a>
             <div class="nav-links">
-                <a href="/shop">🛒 عرض المتجر</a>
-                <a href="/admin-orders">📦 إدارة الطلبات</a>
+                <a href="/shop">🛒 المتجر</a>
+                <a href="/admin-orders">📦 الطلبات</a>
             </div>
-        </div>
+        </header>
 
         <div class="container">
             <div class="card">
-                <h2 id="formTitle">إضافة منتج جديد</h2>
+                <h2 id="formTitle">إضافة منتج للترسانة</h2>
                 <form id="productForm" onsubmit="saveProduct(event)">
                     <input type="hidden" id="productId">
                     
                     <div class="form-group">
                         <label>اسم المنتج</label>
-                        <input type="text" id="name" required placeholder="مثال: تيشرت أوفر سايز">
+                        <input type="text" id="name" required placeholder="مثال: لابتوب جيمنج ASUS ROG">
                     </div>
 
                     <div class="form-group">
                         <label>القسم</label>
-                        <input type="text" id="category" placeholder="مثال: ملابس رجالي" required>
+                        <input type="text" id="category" placeholder="مثال: لابتوبات" required>
                     </div>
 
                     <div class="form-group">
-                        <label>السعر (جنية)</label>
+                        <label>السعر (جنية مصري)</label>
                         <input type="number" id="price" required placeholder="0">
                     </div>
 
@@ -238,22 +223,22 @@
                     </div>
 
                     <div class="form-group">
-                        <label>الوصف</label>
-                        <textarea id="description" rows="3" placeholder="وصف تفصيلي للمنتج..."></textarea>
+                        <label>وصف المنتج</label>
+                        <textarea id="description" rows="3" placeholder="اكتب وصف تفصيلي لجذب العملاء..."></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label>صورة المنتج</label>
+                        <label>صورة المنتج (عالية الجودة)</label>
                         <input type="file" id="image" accept="image/*">
                     </div>
 
-                    <button type="submit" id="submitBtn">حفظ المنتج وتحديث النظام</button>
-                    <button type="button" id="cancelBtn" class="btn-cancel" style="display: none;" onclick="resetForm()">إلغاء التعديل</button>
+                    <button type="submit" id="submitBtn">حفظ المنتج وتحديث النظام 🚀</button>
+                    <button type="button" id="cancelBtn" class="btn-cancel" style="display: none;" onclick="resetForm()">إلغاء التعديل والعودة</button>
                 </form>
             </div>
 
             <div class="card">
-                <h2>المنتجات الحالية</h2>
+                <h2>المنتجات الحالية في المتجر</h2>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -266,7 +251,7 @@
                             </tr>
                         </thead>
                         <tbody id="productsTableBody">
-                            <tr><td colspan="5" style="text-align: center;">جاري تحميل البيانات...</td></tr>
+                            <tr><td colspan="5" style="text-align: center;">جاري استدعاء البيانات من السيرفر...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -277,7 +262,7 @@
     <div id="toast-container"></div>
 
     <script>
-        // --- كود نظام حماية لوحة التحكم البريميوم ---
+        // --- كود نظام الحماية ---
         function validateAdminLogin() {
             const userField = document.getElementById('admin-username').value;
             const passField = document.getElementById('admin-password').value;
@@ -285,14 +270,12 @@
             const authOverlay = document.getElementById('auth-overlay');
             const mainContent = document.getElementById('main-admin-content');
 
-            // التحقق المطابق لبيانات الباك إند الحالية الخاصة بك
             if (userField === 'yousef_wahz' && passField === 'yoyomyom12') {
                 authOverlay.style.opacity = "0";
                 setTimeout(() => {
                     authOverlay.style.display = "none";
                     mainContent.style.display = "block";
-                    // تشغيل تحميل البيانات فور تخطي الأمان بنجاح
-                    fetchDashboardData();
+                    fetchDashboardData(); // تحميل الداتا بعد فك القفل
                 }, 500);
             } else {
                 errorMsg.style.display = 'block';
@@ -300,14 +283,13 @@
             }
         }
 
-        // تشغيل التحقق عند الضغط على Enter من لوحة المفاتيح للتسهيل
         document.addEventListener('keypress', function (e) {
             if (e.key === 'Enter' && document.getElementById('auth-overlay').style.display !== 'none') {
                 validateAdminLogin();
             }
         });
 
-        // --- باقي كود العمليات الأصلي الخاص بك (دون تعديل أو تغيير) ---
+        // --- باقي الكود الأصلي للداتا بيز والعمليات ---
         let editMode = false;
         let currentProducts = [];
         const authHeaderValue = 'Basic ' + btoa('yousef_wahz:yoyomyom12');
@@ -315,13 +297,16 @@
         function triggerNotification(message, type = "success") {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
+            // إضافة أيقونة للإشعار
+            const icon = type === 'success' ? '✅' : '🛑';
             toast.className = `toast ${type}`;
-            toast.innerText = message;
+            toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+            
             container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 100);
             setTimeout(() => {
                 toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
+                setTimeout(() => toast.remove(), 400);
             }, 4000);
         }
 
@@ -341,7 +326,7 @@
             tbody.innerHTML = '';
 
             if (currentProducts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">لا توجد منتجات حالياً. أضف منتجك الأول!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #a0aec0;">الترسانة فارغة. أضف منتجك الأول الآن!</td></tr>';
                 return;
             }
 
@@ -349,8 +334,8 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><img src="${product.imageUrl || 'https://via.placeholder.com/50'}" class="product-img" alt="Product"></td>
-                    <td>${product.name}</td>
-                    <td>${product.price} ج.م</td>
+                    <td style="color: #fff; font-weight: 700;">${product.name}</td>
+                    <td style="color: #ffd700; font-weight: 900;">${product.price} ج.م</td>
                     <td>${product.stock}</td>
                     <td>
                         <button class="btn-edit" onclick="editProduct('${product.id}')">✏️ تعديل</button>
@@ -365,7 +350,7 @@
             e.preventDefault();
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerText = "جاري الاتصال بقاعدة البيانات...";
+            submitBtn.innerText = "جاري رفع البيانات...";
 
             const formData = new FormData();
             formData.append('name', document.getElementById('name').value);
@@ -405,7 +390,7 @@
                 triggerNotification("خطأ شبكة: تأكد من اتصالك بالإنترنت", "error");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = editMode ? "تأكيد وتحديث البيانات" : "حفظ المنتج وتحديث النظام";
+                submitBtn.innerText = editMode ? "تأكيد وتحديث البيانات 🚀" : "حفظ المنتج وتحديث النظام 🚀";
             }
         }
 
@@ -420,25 +405,25 @@
             document.getElementById('stock').value = product.stock;
             document.getElementById('description').value = product.description || '';
             
-            document.getElementById('formTitle').innerText = "تعديل بيانات المنتج";
-            document.getElementById('submitBtn').innerText = "تأكيد وتحديث البيانات";
+            document.getElementById('formTitle').innerText = "تعديل بيانات المنتج 🛠️";
+            document.getElementById('submitBtn').innerText = "تأكيد وتحديث البيانات 🚀";
             document.getElementById('cancelBtn').style.display = "block";
             
             editMode = true;
-            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function resetForm() {
             document.getElementById('productForm').reset();
             document.getElementById('productId').value = '';
-            document.getElementById('formTitle').innerText = "إضافة منتج جديد";
-            document.getElementById('submitBtn').innerText = "حفظ المنتج وتحديث النظام";
+            document.getElementById('formTitle').innerText = "إضافة منتج للترسانة";
+            document.getElementById('submitBtn').innerText = "حفظ المنتج وتحديث النظام 🚀";
             document.getElementById('cancelBtn').style.display = "none";
             editMode = false;
         }
 
         async function deleteProduct(id) {
-            if (!confirm("هل أنت متأكد من حذف هذا المنتج نهائياً؟")) return;
+            if (!confirm("هل أنت متأكد من حذف هذا المنتج نهائياً من المتجر؟")) return;
 
             const myHeaders = new Headers();
             myHeaders.append('Authorization', authHeaderValue);
@@ -446,7 +431,7 @@
             try {
                 const res = await fetch(`/delete/${id}`, { method: 'DELETE', headers: myHeaders });
                 if (res.ok) {
-                    triggerNotification("تم حذف المنتج بنجاح");
+                    triggerNotification("تم مسح المنتج من قاعدة البيانات");
                     await fetchDashboardData();
                 } else {
                     const resultData = await res.json().catch(() => ({}));
