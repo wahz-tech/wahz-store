@@ -11,6 +11,7 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
+// إعدادات Cloudinary لرفع الصور
 cloudinary.config({ 
     cloud_name: 'dngcxt4jk', 
     api_key: '769915154855871',
@@ -33,6 +34,7 @@ const uploadImageToCloud = (fileBuffer) => {
     });
 };
 
+// حماية لوحة التحكم بـ Basic Auth
 const adminAuth = (req, res, next) => {
     const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
     const [user, pass] = Buffer.from(b64auth, 'base64').toString().split(':');
@@ -45,7 +47,7 @@ const adminAuth = (req, res, next) => {
     return res.status(401).send('بيانات الدخول غير صحيحة!');
 };
 
-// مسارات الصفحات الثابتة
+// --- مسارات الصفحات الثابتة (تعديل متوافق مع بيئة Vercel) ---
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'index.html'));
 });
@@ -58,7 +60,7 @@ app.get('/shop', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'shop.html'));
 });
 
-// APIs المنتجات والطلبات
+// --- APIs المنتجات ---
 app.get('/products', async (req, res) => {
     try {
         const products = await prisma.product.findMany({ orderBy: { createdAt: 'desc' } });
@@ -127,6 +129,57 @@ app.delete('/delete/:id', adminAuth, async (req, res) => {
     }
 });
 
+// --- APIs الطلبات مع معالجة ذكية ومقاومة للأخطاء ---
+app.post('/checkout', async (req, res) => {
+    try {
+        const { customer, phone, address, cart } = req.body;
+        
+        if (!cart || !Array.isArray(cart) || cart.length === 0) {
+            return res.status(400).json({ error: "سلة المشتريات فارغة" });
+        }
+
+        let total = 0;
+        
+        for (let item of cart) {
+            // حل ذكي: قراءة الكمية سواء كانت باسم quantity أو qty وسواء كانت نص أو رقم
+            const quantity = parseInt(item.quantity || item.qty || 1);
+            const itemPrice = parseFloat(item.price || 0);
+            total += (itemPrice * quantity);
+            
+            // تحويل الـ ID لرقم لو كان ينفع عشان يتوافق مع الـ ID اللي في الداتا بيز
+            const itemId = isNaN(item.id) ? item.id : parseInt(item.id);
+
+            // جلب المنتج للتأكد من المخزن الحالي
+            const product = await prisma.product.findUnique({ where: { id: itemId } });
+            
+            if (product) {
+                // بنطرح يدوي ونحدث القيمة النهائية عشان نتجنب الـ decrement undefined تماماً
+                const newStock = Math.max(0, product.stock - quantity);
+                await prisma.product.update({
+                    where: { id: itemId },
+                    data: { stock: newStock }
+                });
+            }
+        }
+
+        // إنشاء الأوردر بنجاح
+        const newOrder = await prisma.order.create({ 
+            data: { 
+                customer: customer || 'عميل مجهول', 
+                phone: phone || '', 
+                address: address || '', 
+                total: parseFloat(total), 
+                items: JSON.stringify(cart), 
+                status: 'pending' 
+            } 
+        });
+
+        res.status(201).json({ success: true, order: newOrder });
+    } catch (err) { 
+        res.status(500).json({ error: "فشل إتمام الشراء: " + err.message }); 
+    }
+});
+
 app.get('/api/orders', adminAuth, async (req, res) => {
     try {
         const orders = await prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
@@ -142,43 +195,6 @@ app.put('/api/orders/:id/status', adminAuth, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/checkout', async (req, res) => {
-    try {
-        const { customer, phone, address, cart } = req.body;
-        
-        // التأكد إن فيه بيانات جاية
-        if (!cart || cart.length === 0) return res.status(400).json({ error: "السلة فارغة" });
-
-        let total = 0;
-        
-        // حلقة تكرار لكل منتج في السلة
-        for (let item of cart) {
-            const quantity = parseInt(item.quantity);
-            total += (item.price * quantity);
-            
-            // نجيب المنتج الأول عشان نعرف المخزن الحالي كام
-            const product = await prisma.product.findUnique({ where: { id: item.id } });
-            
-            if (product) {
-                // نحدث المخزن بناءً على العملية الحسابية (Current - Qty)
-                await prisma.product.update({
-                    where: { id: item.id },
-                    data: { stock: product.stock - quantity }
-                });
-            }
-        }
-
-        // تسجيل الطلب
-        const newOrder = await prisma.order.create({ 
-            data: { customer, phone, address, total, items: JSON.stringify(cart), status: 'pending' } 
-        });
-
-        res.status(201).json({ success: true, order: newOrder });
-    } catch (err) { 
-        res.status(500).json({ error: err.message }); 
-    }
-});
-
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
@@ -186,8 +202,4 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = app;
 
-module.exports.config = {
-  api: {
-    bodyParser: false,
-  },
-};
+module.exports.config = { api: { bodyParser: false } };
