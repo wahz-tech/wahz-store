@@ -63,7 +63,7 @@ app.get('/admin-orders', adminAuth, (req, res) => {
 
 // 🔒 تم إنشاء مسار محمي لصفحة إضافة المنتجات (تأكد إن اسم ملفك add-product.html)
 app.get('/add-product', adminAuth, (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'add-product.html'));
+    res.sendFile(path.join(process.cwd(), 'index.html'));
 });
 
 // --- APIs المنتجات ---
