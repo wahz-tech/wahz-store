@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wahz Store - لوحة تحكم الإدارة</title>
+    <title>Wahz Store Premium - لوحة تحكم الإدارة</title>
     <style>
         :root {
             --primary-color: #2563eb;
@@ -12,6 +12,11 @@
             --bg-color: #f3f4f6;
             --card-bg: #ffffff;
             --text-color: #1f2937;
+            
+            /* ألوان شاشة القفل الفاخرة */
+            --auth-bg: #080b11;
+            --auth-surface: #111622;
+            --auth-gold-grad: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
         }
 
         * {
@@ -171,72 +176,100 @@
 </head>
 <body>
 
-    <div class="header">
-        <h1>Wahz Store - الإدارة</h1>
-        <div class="nav-links">
-            <a href="/shop">🛒 عرض المتجر</a>
-            <a href="/admin-orders">📦 إدارة الطلبات</a>
+    <div id="auth-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--auth-bg); z-index: 999999; display: flex; align-items: center; justify-content: center; direction: rtl; transition: opacity 0.5s ease;">
+        <div style="background: var(--auth-surface); padding: 40px 30px; border-radius: 20px; border: 1px solid rgba(255, 215, 0, 0.2); box-shadow: 0 20px 50px rgba(0,0,0,0.6); width: 100%; max-width: 420px; text-align: center; box-sizing: border-box; position: relative;">
+            
+            <div style="background: linear-gradient(135deg, #ff9900 0%, #ff5500 100%); color: #000; width: 50px; height: 50px; border-radius: 14px; font-size: 2rem; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);">W</div>
+            
+            <h2 style="color: #ffffff; margin: 0 0 5px 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">Wahz Store <span style="background: var(--auth-gold-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Premium</span></h2>
+            <p style="color: #637381; margin: 0 0 30px 0; font-size: 14px; font-weight: 500;">بوابة الإدارة وصلاحيات النظام</p>
+            
+            <div style="margin-bottom: 20px; text-align: right;">
+                <label style="color: #fff; display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600;">اسم الإدمن</label>
+                <input type="text" id="admin-username" placeholder="ادخل يوزر الحساب" style="width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); color: #fff; font-size: 15px; outline: none; box-sizing: border-box; transition: 0.3s;">
+            </div>
+            
+            <div style="margin-bottom: 25px; text-align: right;">
+                <label style="color: #fff; display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600;">كلمة المرور السرية</label>
+                <input type="password" id="admin-password" placeholder="••••••••" style="width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); color: #fff; font-size: 15px; outline: none; box-sizing: border-box; transition: 0.3s;">
+            </div>
+            
+            <button onclick="validateAdminLogin()" style="width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--auth-gold-grad); color: #000; font-size: 16px; font-weight: 900; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 20px rgba(255, 215, 0, 0.25);">
+                تسجيل الدخول للنظام 🔐
+            </button>
+            
+            <p id="login-error-msg" style="color: #ff4d4d; font-size: 14px; margin: 15px 0 0 0; display: none; font-weight: 600; background: rgba(255, 77, 77, 0.1); padding: 8px; border-radius: 8px;">🛑 البيانات خاطئة! لست أدمن متجر واهز بريميوم.</p>
         </div>
     </div>
 
-    <div class="container">
-        <div class="card">
-            <h2 id="formTitle">إضافة منتج جديد</h2>
-            <form id="productForm" onsubmit="saveProduct(event)">
-                <input type="hidden" id="productId">
-                
-                <div class="form-group">
-                    <label>اسم المنتج</label>
-                    <input type="text" id="name" required placeholder="مثال: تيشرت أوفر سايز">
-                </div>
-
-                <div class="form-group">
-                    <label>القسم</label>
-                    <input type="text" id="category" placeholder="مثال: ملابس رجالي" required>
-                </div>
-
-                <div class="form-group">
-                    <label>السعر (جنية)</label>
-                    <input type="number" id="price" required placeholder="0">
-                </div>
-
-                <div class="form-group">
-                    <label>الكمية المتاحة في المخزن</label>
-                    <input type="number" id="stock" required placeholder="0">
-                </div>
-
-                <div class="form-group">
-                    <label>الوصف</label>
-                    <textarea id="description" rows="3" placeholder="وصف تفصيلي للمنتج..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>صورة المنتج</label>
-                    <input type="file" id="image" accept="image/*">
-                </div>
-
-                <button type="submit" id="submitBtn">حفظ المنتج وتحديث النظام</button>
-                <button type="button" id="cancelBtn" class="btn-cancel" style="display: none;" onclick="resetForm()">إلغاء التعديل</button>
-            </form>
+    <div id="main-admin-content" style="display: none;">
+        <div class="header">
+            <h1>Wahz Store - الإدارة</h1>
+            <div class="nav-links">
+                <a href="/shop">🛒 عرض المتجر</a>
+                <a href="/admin-orders">📦 إدارة الطلبات</a>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>المنتجات الحالية</h2>
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>الصورة</th>
-                            <th>الاسم</th>
-                            <th>السعر</th>
-                            <th>المخزن</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productsTableBody">
-                        <tr><td colspan="5" style="text-align: center;">جاري تحميل البيانات...</td></tr>
-                    </tbody>
-                </table>
+        <div class="container">
+            <div class="card">
+                <h2 id="formTitle">إضافة منتج جديد</h2>
+                <form id="productForm" onsubmit="saveProduct(event)">
+                    <input type="hidden" id="productId">
+                    
+                    <div class="form-group">
+                        <label>اسم المنتج</label>
+                        <input type="text" id="name" required placeholder="مثال: تيشرت أوفر سايز">
+                    </div>
+
+                    <div class="form-group">
+                        <label>القسم</label>
+                        <input type="text" id="category" placeholder="مثال: ملابس رجالي" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>السعر (جنية)</label>
+                        <input type="number" id="price" required placeholder="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>الكمية المتاحة في المخزن</label>
+                        <input type="number" id="stock" required placeholder="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>الوصف</label>
+                        <textarea id="description" rows="3" placeholder="وصف تفصيلي للمنتج..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>صورة المنتج</label>
+                        <input type="file" id="image" accept="image/*">
+                    </div>
+
+                    <button type="submit" id="submitBtn">حفظ المنتج وتحديث النظام</button>
+                    <button type="button" id="cancelBtn" class="btn-cancel" style="display: none;" onclick="resetForm()">إلغاء التعديل</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>المنتجات الحالية</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الصورة</th>
+                                <th>الاسم</th>
+                                <th>السعر</th>
+                                <th>المخزن</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <tr><td colspan="5" style="text-align: center;">جاري تحميل البيانات...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -244,6 +277,37 @@
     <div id="toast-container"></div>
 
     <script>
+        // --- كود نظام حماية لوحة التحكم البريميوم ---
+        function validateAdminLogin() {
+            const userField = document.getElementById('admin-username').value;
+            const passField = document.getElementById('admin-password').value;
+            const errorMsg = document.getElementById('login-error-msg');
+            const authOverlay = document.getElementById('auth-overlay');
+            const mainContent = document.getElementById('main-admin-content');
+
+            // التحقق المطابق لبيانات الباك إند الحالية الخاصة بك
+            if (userField === 'yousef_wahz' && passField === 'yoyomyom12') {
+                authOverlay.style.opacity = "0";
+                setTimeout(() => {
+                    authOverlay.style.display = "none";
+                    mainContent.style.display = "block";
+                    // تشغيل تحميل البيانات فور تخطي الأمان بنجاح
+                    fetchDashboardData();
+                }, 500);
+            } else {
+                errorMsg.style.display = 'block';
+                document.getElementById('admin-password').value = '';
+            }
+        }
+
+        // تشغيل التحقق عند الضغط على Enter من لوحة المفاتيح للتسهيل
+        document.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && document.getElementById('auth-overlay').style.display !== 'none') {
+                validateAdminLogin();
+            }
+        });
+
+        // --- باقي كود العمليات الأصلي الخاص بك (دون تعديل أو تغيير) ---
         let editMode = false;
         let currentProducts = [];
         const authHeaderValue = 'Basic ' + btoa('yousef_wahz:yoyomyom12');
@@ -392,8 +456,6 @@
                 triggerNotification("حدث خطأ أثناء الاتصال بالسيرفر للحذف", "error");
             }
         }
-
-        window.onload = () => { fetchDashboardData(); };
     </script>
 </body>
 </html>
