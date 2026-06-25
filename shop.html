@@ -26,7 +26,10 @@
         header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex; flex-direction: column; }
         
         .main-nav { background: var(--amazon-dark); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; gap: 30px; }
-        .brand { font-size: 2rem; font-weight: 800; color: #fff; text-decoration: none; letter-spacing: -0.5px; }
+        
+        /* تصميم اللوجو الاحترافي الجديد */
+        .brand { font-size: 1.8rem; font-weight: 800; color: #fff; text-decoration: none; letter-spacing: -0.5px; display: inline-flex; align-items: center; gap: 10px; }
+        .brand-logo-box { background: linear-gradient(135deg, var(--amazon-orange), #ffb347); color: var(--amazon-dark); padding: 4px 12px; border-radius: 8px; font-size: 1.4rem; font-weight: 900; box-shadow: 0 3px 6px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2); }
         .brand span { color: var(--amazon-orange); }
         
         .search-container { flex: 1; max-width: 800px; display: flex; border-radius: 6px; overflow: hidden; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
@@ -35,7 +38,13 @@
         .search-btn { background: #febd69; border: none; width: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; transition: background 0.2s; }
         .search-btn:hover { background: #f3a847; }
 
-        .nav-tools { display: flex; align-items: center; gap: 25px; color: #fff; }
+        .nav-tools { display: flex; align-items: center; gap: 15px; color: #fff; }
+        
+        /* تنسيق زر تواصل معنا الجديد */
+        .contact-trigger { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 12px; border: 1px solid transparent; border-radius: 4px; transition: 0.2s; color: #fff; text-decoration: none; }
+        .contact-trigger:hover { border-color: #fff; background: rgba(255,255,255,0.05); }
+        .contact-icon { font-size: 1.2rem; color: var(--amazon-orange); display: flex; align-items: center; }
+
         .cart-trigger { display: flex; align-items: flex-end; gap: 5px; cursor: pointer; padding: 5px 10px; border: 1px solid transparent; border-radius: 4px; transition: 0.2s; }
         .cart-trigger:hover { border-color: #fff; }
         .cart-icon-box { position: relative; display: flex; align-items: center; }
@@ -140,7 +149,11 @@
 
     <header>
         <div class="main-nav">
-            <a href="/" class="brand">Wahz<span>Store</span></a>
+            <!-- الشعار الاحترافي الجديد للمتجر -->
+            <a href="/" class="brand">
+                <div class="brand-logo-box">W</div>
+                Wahz<span>Store</span>
+            </a>
             
             <div class="search-container">
                 <input type="text" class="search-bar" id="searchBar" placeholder="ابحث عن أجهزة جيمنج، لابتوبات، واكسسوارات..." onkeyup="filterProducts()">
@@ -148,6 +161,12 @@
             </div>
             
             <div class="nav-tools">
+                <!-- زر تواصل معنا الجديد مدمج به الرقم -->
+                <a href="tel:01153014635" class="contact-trigger" title="اتصل بنا الآن">
+                    <span class="contact-icon">📞</span>
+                    <span style="font-weight: 700; font-size: 1rem;">تواصل معنا</span>
+                </a>
+
                 <div class="cart-trigger" onclick="toggleCart()">
                     <div class="cart-icon-box">
                         <svg viewBox="0 0 35 25"><path d="M8.5 2h22.2l-3.3 11.2H12L8.5 2zM6 2L3 2m3 0l2.5 11.2m0 0L7 16.5m1.5-3.3h16m-13.8 5.8a2 2 0 100 4 2 2 0 000-4zm11 0a2 2 0 100 4 2 2 0 000-4z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -215,23 +234,20 @@
     </div>
 
     <script>
-        // الداتا بقت فاضية في البداية عشان هتيجي من السيرفر بتاعك
         let dbProducts = [];
         let cart = JSON.parse(localStorage.getItem('wahz_cart')) || [];
         let currentCategory = 'الكل';
 
-        // 1. الدالة اللي بتجيب المنتجات من الداتا بيز الحقيقية
         async function fetchProducts() {
             try {
                 const response = await fetch('/products');
                 const data = await response.json();
                 
-                // بنظبط البيانات عشان تمشي مع التصميم بتاعك
                 dbProducts = data.map(p => ({
                     id: p.id,
                     name: p.name,
                     price: p.price,
-                    category: p.category || 'عام', // لو مفيش تصنيف في السيرفر
+                    category: p.category || 'عام', 
                     image: p.imageUrl || 'https://via.placeholder.com/300?text=Wahz+Store',
                     stock: p.stock
                 }));
@@ -243,11 +259,9 @@
             }
         }
 
-        // استدعاء السيرفر بدل الـ setTimeout الوهمي القديم
         fetchProducts();
 
         function initStoreUI() {
-            // Setup Categories
             const categories = ['الكل', ...new Set(dbProducts.map(p => p.category))];
             document.getElementById('categoryNav').innerHTML = categories.map(cat => 
                 `<button class="cat-tab-btn ${cat === currentCategory ? 'active' : ''}" onclick="filterByCategory('${cat}', this)">${cat}</button>`
@@ -303,7 +317,6 @@
         function addToCart(id) {
             const product = dbProducts.find(p => p.id === id);
             
-            // التأكد من المخزون
             if(product.stock <= 0) {
                 alert('عذراً، هذا المنتج نفذ من المخزون!');
                 return;
@@ -341,7 +354,6 @@
                 container.innerHTML = '<div style="text-align:center; padding-top:40px;"><h3 style="color:#565959;">عربتك فارغة حالياً</h3></div>';
                 document.getElementById('cartTotal').innerText = '0 ج.م';
                 
-                // إخفاء فورم الدفع لو السلة فضيت
                 document.getElementById('checkoutForm').style.display = 'none';
                 document.getElementById('checkoutBtn').innerText = 'تابع لإتمام الشراء';
                 return;
@@ -382,21 +394,18 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // 2. إرسال الطلب للسيرفر الحقيقي (Prisma & Node.js)
         async function goToCheckout() {
             if(cart.length === 0) return alert('السلة فارغة!');
 
             const form = document.getElementById('checkoutForm');
             const btn = document.getElementById('checkoutBtn');
 
-            // لو الفورم مخفية، نظهرها الأول للعميل عشان يكتب بياناته
             if(form.style.display === 'none' || form.style.display === '') {
                 form.style.display = 'flex';
                 btn.innerText = 'تأكيد إرسال الطلب 🚀';
                 return;
             }
 
-            // لو ظاهرة، نجمع البيانات ونبعتها
             const name = document.getElementById('custName').value;
             const phone = document.getElementById('custPhone').value;
             const address = document.getElementById('custAddress').value;
@@ -405,7 +414,6 @@
                 return alert('برجاء ملء جميع بيانات الشحن (الاسم، رقم الموبايل، العنوان)!');
             }
 
-            // تغيير شكل الزرار وقت التحميل
             btn.innerText = 'جاري تسجيل طلبك...';
             btn.disabled = true;
 
@@ -426,7 +434,6 @@
                 if (result.success) {
                     alert(`🎉 ألف مبروك! تم تسجيل طلبك بنجاح.\nرقم الأوردر: ${result.order.id}`);
                     
-                    // تصفير السلة وإخفاء الفورم
                     cart = [];
                     saveCart();
                     updateCartUI();
@@ -434,7 +441,6 @@
                     btn.innerText = 'تابع لإتمام الشراء';
                     toggleCart();
                     
-                    // تحديث المنتجات عشان المخزون يقل
                     fetchProducts(); 
                 } else {
                     alert('❌ حدث خطأ: ' + result.error);
@@ -456,7 +462,6 @@
             slideIndex = (slideIndex + 1) % 2; 
             document.getElementById('slider').style.transform = `translateX(${slideIndex * 33.333}%)`;
         }, 5000);
-
     </script>
 </body>
 </html>
