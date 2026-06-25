@@ -47,17 +47,23 @@ const adminAuth = (req, res, next) => {
     return res.status(401).send('بيانات الدخول غير صحيحة!');
 };
 
-// --- مسارات الصفحات الثابتة (تعديل متوافق مع بيئة Vercel) ---
+// --- مسارات الصفحات الثابتة ---
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'index.html'));
 });
 
-app.get('/admin-orders', (req, res) => {
+app.get('/shop', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'shop.html'));
+});
+
+// 🔒 تم إضافة حماية (adminAuth) لصفحة الطلبات
+app.get('/admin-orders', adminAuth, (req, res) => {
     res.sendFile(path.join(process.cwd(), 'admin-orders.html'));
 });
 
-app.get('/shop', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'shop.html'));
+// 🔒 تم إنشاء مسار محمي لصفحة إضافة المنتجات (تأكد إن اسم ملفك add-product.html)
+app.get('/add-product', adminAuth, (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'add-product.html'));
 });
 
 // --- APIs المنتجات ---
@@ -129,7 +135,7 @@ app.delete('/delete/:id', adminAuth, async (req, res) => {
     }
 });
 
-// --- APIs الطلبات مع معالجة ذكية ومقاومة للأخطاء ---
+// --- APIs الطلبات ---
 app.post('/checkout', async (req, res) => {
     try {
         const { customer, phone, address, cart } = req.body;
@@ -141,19 +147,15 @@ app.post('/checkout', async (req, res) => {
         let total = 0;
         
         for (let item of cart) {
-            // حل ذكي: قراءة الكمية سواء كانت باسم quantity أو qty وسواء كانت نص أو رقم
             const quantity = parseInt(item.quantity || item.qty || 1);
             const itemPrice = parseFloat(item.price || 0);
             total += (itemPrice * quantity);
             
-            // تحويل الـ ID لرقم لو كان ينفع عشان يتوافق مع الـ ID اللي في الداتا بيز
             const itemId = isNaN(item.id) ? item.id : parseInt(item.id);
 
-            // جلب المنتج للتأكد من المخزن الحالي
             const product = await prisma.product.findUnique({ where: { id: itemId } });
             
             if (product) {
-                // بنطرح يدوي ونحدث القيمة النهائية عشان نتجنب الـ decrement undefined تماماً
                 const newStock = Math.max(0, product.stock - quantity);
                 await prisma.product.update({
                     where: { id: itemId },
@@ -162,7 +164,6 @@ app.post('/checkout', async (req, res) => {
             }
         }
 
-        // إنشاء الأوردر بنجاح
         const newOrder = await prisma.order.create({ 
             data: { 
                 customer: customer || 'عميل مجهول', 
@@ -201,5 +202,4 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 module.exports = app;
-
 module.exports.config = { api: { bodyParser: false } };
